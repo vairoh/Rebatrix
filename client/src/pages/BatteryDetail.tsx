@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import BatteryInquiry from "@/components/batteries/BatteryInquiry"; // Import BatteryInquiry component
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"; // Import Dialog components
 
 export default function BatteryDetail() {
   const { id } = useParams();
@@ -71,15 +72,9 @@ export default function BatteryDetail() {
     }
   });
 
-  const [showContactForm, setShowContactForm] = useState(false);
-  const [formValues, setFormValues] = useState({
-    name: "",
-    company: "",
-    email: "",
-    message: "",
-  });
+  // We don't need these states anymore as we're using the BatteryInquiry component
 
-  // Handler for contact seller button - checks for authentication
+  // Handler for contact seller button - checks for authentication and scrolls to inquiry form
   const handleContactSellerClick = () => {
     if (!user) {
       // User is not authenticated, show toast notification and redirect to login
@@ -90,22 +85,25 @@ export default function BatteryDetail() {
       });
       navigate("/login");
     } else {
-      // User is authenticated, show contact form
-      setShowContactForm(true);
+      // User is authenticated, scroll to the inquiry form
+      const inquiryForm = document.getElementById('battery-inquiry-section');
+      if (inquiryForm) {
+        inquiryForm.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
   // Set SEO meta tags and check ownership
   useEffect(() => {
     if (battery) {
-      document.title = `${battery.title} | Rebatrix Battery Marketplace`;
+      document.title = `${battery.capacity} kWh Battery | Rebatrix Battery Marketplace`; // Updated title
 
-      // Update meta description
+      // Update meta description - removed title from description
       const metaDescription = document.querySelector('meta[name="description"]');
       if (metaDescription) {
         metaDescription.setAttribute(
           "content", 
-          `${battery.batteryType} ${battery.manufacturer} ${battery.title} - ${battery.capacity} kWh ${battery.technologyType} battery. ${battery.description.slice(0, 150)}...`
+          `${battery.batteryType} ${battery.manufacturer} - ${battery.capacity} kWh ${battery.technologyType} battery. ${battery.description.slice(0, 150)}...`
         );
       }
 
@@ -144,24 +142,52 @@ export default function BatteryDetail() {
         return 'Available';
     }
   };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormValues(prev => ({ ...prev, [name]: value }));
+  
+  const getRentalPeriodSuffix = (period?: string) => {
+    switch (period) {
+      case 'yearly':
+        return '/yr';
+      case 'quarterly':
+        return '/qtr';
+      case 'monthly':
+        return '/mo';
+      case 'weekly':
+        return '/wk';
+      case 'daily':
+        return '/day';
+      default:
+        return '/mo'; // Default to monthly if not specified
+    }
   };
 
-  const handleSubmitInquiry = (e: React.FormEvent) => {
-    e.preventDefault();
-    // In a real app, this would send the inquiry to the backend
-    alert("Your inquiry has been sent! The battery owner will contact you soon.");
-    setShowContactForm(false);
-    setFormValues({
-      name: "",
-      company: "",
-      email: "",
-      message: "",
-    });
-  };
+  // Removed unused handlers since we're using only BatteryInquiry component
+
+  useEffect(() => {
+    if (batteryId) {
+      fetchBattery(batteryId);
+    }
+
+    // Debug: Add event listener to catch any "Contact Seller" button clicks
+    const debugClickHandler = (e) => {
+      const target = e.target as HTMLElement;
+      if (target.textContent?.includes("Contact") || 
+          target.textContent?.includes("Seller") ||
+          target.textContent?.includes("Inquiry")) {
+        console.log("Contact-related element clicked:", {
+          element: target,
+          text: target.textContent,
+          parentHTML: target.parentElement?.outerHTML
+        });
+      }
+    };
+
+    document.addEventListener('click', debugClickHandler);
+
+    return () => {
+      document.removeEventListener('click', debugClickHandler);
+    };
+  }, [batteryId]);
+
 
   if (isLoading) {
     return (
@@ -240,7 +266,7 @@ export default function BatteryDetail() {
               <a className="hover:text-primary-600">Marketplace</a>
             </Link>
             <i className="ri-arrow-right-s-line mx-2"></i>
-            <span className="text-neutral-800 font-medium">{battery.title}</span>
+            <span className="text-neutral-800 font-medium">{battery.capacity} kWh</span> {/*Updated breadcrumb*/}
           </div>
 
           <div className="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -263,7 +289,7 @@ export default function BatteryDetail() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
                 >
-                  {battery.title}
+                  {battery.capacity} kWh {battery.manufacturer} Battery
                 </motion.h1>
 
                 <motion.div 
@@ -272,25 +298,23 @@ export default function BatteryDetail() {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <span className="text-2xl font-semibold text-primary-500">
-                    {battery.listingType === 'rent' || battery.listingType === 'lend' 
-                      ? `€${Number(battery.price).toLocaleString()}/mo`
-                      : `€${Number(battery.price).toLocaleString()}`}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-2xl font-bold text-primary-500">
+                      {battery.listingType === 'rent' || battery.listingType === 'lend' 
+                        ? `€${Number(battery.price).toLocaleString()}${getRentalPeriodSuffix(battery.rentalPeriod)}`
+                        : `€${Number(battery.price).toLocaleString()}`}
+                    </span>
+                    <span className="text-sm text-neutral-600">
+                      €{(Number(battery.price) / Number(battery.capacity)).toFixed(2)}/kWh
+                    </span>
+                  </div>
                   <div className="flex items-center gap-2 text-sm text-neutral-600">
                     <i className="ri-map-pin-line"></i>
                     <span>{battery.location}, {battery.country}</span>
                   </div>
                 </motion.div>
 
-                <motion.p 
-                  className="text-neutral-600 mb-6"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  {battery.description}
-                </motion.p>
+                {/*Removed description*/}
 
                 <Separator className="my-6" />
 
@@ -382,14 +406,20 @@ export default function BatteryDetail() {
                       Edit Listing
                     </Button>
                   ) : (
-                    <Button 
-                      size="lg" 
-                      className="flex items-center gap-2"
-                      onClick={handleContactSellerClick}
-                    >
-                      <i className="ri-mail-line"></i>
-                      Contact Seller
-                    </Button>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button 
+                          size="lg" 
+                          className="flex items-center gap-2"
+                        >
+                          <i className="ri-mail-line"></i>
+                          Contact Seller
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <BatteryInquiry batteryId={battery.id} batteryTitle={battery.capacity + "kWh"} />
+                      </DialogContent>
+                    </Dialog>
                   )}
                   <Button
                     variant="outline"
@@ -403,13 +433,7 @@ export default function BatteryDetail() {
               </div>
             </div>
 
-            {/* Battery Inquiry Form */}
-            <div className="mt-8">
-              <BatteryInquiry 
-                batteryId={battery.id} 
-                batteryTitle={battery.title} 
-              />
-            </div>
+            {/* Battery Inquiry Form - Now in the Dialog */}
 
             {/* Detailed specifications */}
             <div className="p-6 md:p-8 border-t border-neutral-200">
@@ -528,12 +552,18 @@ export default function BatteryDetail() {
                         <p className="text-sm text-neutral-600 mb-4">
                           Contact the seller for more information about this battery, shipping options, or to arrange an inspection.
                         </p>
-                        <Button 
-                          className="w-full"
-                          onClick={handleContactSellerClick}
-                        >
-                          Contact Seller
-                        </Button>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button 
+                              className="w-full"
+                            >
+                              Contact Seller
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <BatteryInquiry batteryId={battery.id} batteryTitle={battery.capacity + "kWh"} />
+                          </DialogContent>
+                        </Dialog>
                       </div>
                     </div>
                   </div>
@@ -542,103 +572,7 @@ export default function BatteryDetail() {
             </div>
           </div>
 
-          {/* Contact form modal */}
-          {showContactForm && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-              <motion.div 
-                className="bg-white rounded-lg shadow-lg max-w-md w-full"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-              >
-                <div className="p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold">Contact the Seller</h3>
-                    <button 
-                      className="text-neutral-500 hover:text-neutral-700"
-                      onClick={() => setShowContactForm(false)}
-                    >
-                      <i className="ri-close-line text-xl"></i>
-                    </button>
-                  </div>
-
-                  <form onSubmit={handleSubmitInquiry}>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Your Name
-                        </label>
-                        <input
-                          type="text"
-                          name="name"
-                          value={formValues.name}
-                          onChange={handleInputChange}
-                          required
-                          className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Company
-                        </label>
-                        <input
-                          type="text"
-                          name="company"
-                          value={formValues.company}
-                          onChange={handleInputChange}
-                          required
-                          className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Email
-                        </label>
-                        <input
-                          type="email"
-                          name="email"
-                          value={formValues.email}
-                          onChange={handleInputChange}
-                          required
-                          className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Message
-                        </label>
-                        <textarea
-                          name="message"
-                          value={formValues.message}
-                          onChange={handleInputChange}
-                          required
-                          rows={4}
-                          className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                          placeholder={`I'm interested in this ${battery.title}. Please provide more information.`}
-                        ></textarea>
-                      </div>
-
-                      <div className="flex justify-end gap-3 pt-2">
-                        <Button 
-                          type="button" 
-                          variant="outline"
-                          onClick={() => setShowContactForm(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button type="submit">
-                          Send Inquiry
-                        </Button>
-                      </div>
-                    </div>
-                  </form>
-                </div>
-              </motion.div>
-            </div>
-          )}
+          {/* Contact form modal removed - using only BatteryInquiry component */}
 
           {/* Similar batteries section */}
           <div className="mt-12">

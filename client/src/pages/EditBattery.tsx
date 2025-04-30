@@ -245,7 +245,14 @@ export default function EditBattery() {
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
-      await mutation.mutateAsync(data as UpdateBattery);
+      // Auto-generate title from capacity and manufacturer
+      const generatedTitle = `${data.capacity} kWh ${data.manufacturer} Battery`;
+      
+      await mutation.mutateAsync({
+        ...data,
+        title: generatedTitle,
+        description: "Battery energy storage system"
+      } as UpdateBattery);
     } catch (error) {
       console.error("Update error:", error);
     }
@@ -322,20 +329,6 @@ export default function EditBattery() {
                     <div>
                       <h2 className="text-lg font-semibold mb-4">Basic Information</h2>
                       <div className="space-y-4">
-                        <FormField
-                          control={form.control}
-                          name="title"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Title*</FormLabel>
-                              <FormControl>
-                                <Input placeholder="e.g. Tesla Powerwall 2" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
@@ -350,9 +343,16 @@ export default function EditBattery() {
                                     {...field} 
                                   />
                                 </FormControl>
-                                <FormDescription>
-                                  {listingType === 'rent' ? 'Price per month' : 'Selling price'}
-                                </FormDescription>
+                                <div className="flex justify-between">
+                                  <FormDescription>
+                                    {listingType === 'rent' ? 'Price per month' : 'Selling price'}
+                                  </FormDescription>
+                                  {form.watch("capacity") && field.value && (
+                                    <div className="text-xs text-neutral-600">
+                                      €{(Number(field.value) / Number(form.watch("capacity"))).toFixed(2)}/kWh
+                                    </div>
+                                  )}
+                                </div>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -389,23 +389,7 @@ export default function EditBattery() {
                           )}
                         </div>
 
-                        <FormField
-                          control={form.control}
-                          name="description"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Description</FormLabel>
-                              <FormControl>
-                                <Textarea 
-                                  placeholder="Describe your battery, its condition, and any other relevant details..."
-                                  className="min-h-32"
-                                  {...field} 
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        
                       </div>
                     </div>
 

@@ -33,14 +33,31 @@ export function BatteryCard({ battery }: BatteryCardProps) {
     // If user is authenticated, the Link component will handle the navigation
   };
 
-  const formatPrice = (price: string, listingType: string) => {
+  const formatPrice = (price: string, listingType: string, rentalPeriod?: string) => {
     const numPrice = Number(price);
 
     if (listingType === 'rent' || listingType === 'lend') {
-      return `€${numPrice.toLocaleString()}/mo`;
+      // Map rental period to display suffix
+      let suffix = "/mo"; // Default to monthly
+      if (rentalPeriod === "yearly") suffix = "/yr";
+      else if (rentalPeriod === "quarterly") suffix = "/qtr";
+      else if (rentalPeriod === "weekly") suffix = "/wk";
+      else if (rentalPeriod === "daily") suffix = "/day";
+      
+      return `€${numPrice.toLocaleString()}${suffix}`;
     }
 
     return `€${numPrice.toLocaleString()}`;
+  };
+
+  const calculatePricePerKWh = (price: string, capacity: string) => {
+    const numPrice = Number(price);
+    const numCapacity = Number(capacity);
+    
+    if (numCapacity <= 0) return "N/A";
+    
+    const pricePerKWh = numPrice / numCapacity;
+    return `€${pricePerKWh.toFixed(2)}/kWh`;
   };
 
   const getBadgeText = (listingType: string, batteryType: string) => {
@@ -67,24 +84,63 @@ export function BatteryCard({ battery }: BatteryCardProps) {
           <Badge className="px-2 py-0.5 text-xs font-medium bg-black text-white rounded-full">
             {getBadgeText(battery.listingType, battery.batteryType)}
           </Badge>
-          <motion.button 
-            className="p-1 rounded-full bg-white text-black border border-black hover:bg-black hover:text-white"
-            initial="rest"
-            whileHover="hover"
-            whileTap="tap"
-            variants={microButtonHover}
-          >
-            <i className="ri-heart-line text-sm"></i>
-          </motion.button>
+          <div className="flex gap-2">
+            {!isOwner && (
+              <Link href={`/battery/${battery.id}`} onClick={(e) => {
+                e.stopPropagation();
+                sessionStorage.setItem('lastViewedBatteryId', String(battery.id));
+                sessionStorage.setItem(`battery-${battery.id}`, JSON.stringify(battery));
+                if (!user) {
+                  e.preventDefault();
+                  toast({
+                    title: "Authentication required",
+                    description: "Please sign in to contact seller",
+                    variant: "default",
+                  });
+                  setLocation("/login");
+                  return false;
+                }
+                return true;
+              }}>
+                <motion.button 
+                  className="p-1 rounded-full bg-white text-black border border-black hover:bg-black hover:text-white"
+                  initial="rest"
+                  whileHover="hover"
+                  whileTap="tap"
+                  variants={microButtonHover}
+                  title="Contact Seller"
+                >
+                  <i className="ri-mail-line text-sm"></i>
+                </motion.button>
+              </Link>
+            )}
+            <motion.button 
+              className="p-1 rounded-full bg-white text-black border border-black hover:bg-black hover:text-white"
+              initial="rest"
+              whileHover="hover"
+              whileTap="tap"
+              variants={microButtonHover}
+            >
+              <i className="ri-heart-line text-sm"></i>
+            </motion.button>
+          </div>
         </div>
       </div>
 
       <div className="p-4">
         <div className="flex justify-between items-start mb-1">
-          <h3 className="font-heading font-semibold text-base line-clamp-2 text-black">{battery.title}</h3>
-          <span className="font-medium text-base text-black">
-            {formatPrice(battery.price, battery.listingType)}
-          </span>
+          {/* Capacity as primary identifier */}
+          <h3 className="font-heading font-semibold text-base line-clamp-2 text-black">
+            {battery.capacity} kWh {battery.manufacturer} Battery
+          </h3>
+          <div className="flex flex-col items-end">
+            <span className="font-semibold text-lg text-black">
+              {formatPrice(battery.price, battery.listingType, battery.rentalPeriod)}
+            </span>
+            <span className="text-xs text-neutral-600">
+              {calculatePricePerKWh(battery.price, battery.capacity)}
+            </span>
+          </div>
         </div>
 
         <div className="mb-2">
@@ -130,7 +186,7 @@ export function BatteryCard({ battery }: BatteryCardProps) {
           </div>
 
           <Link href={`/battery/${battery.id}`} onClick={(e) => {
-            console.log("Navigating to battery details:", battery.id, battery.title, "Battery Object:", battery);
+            console.log("Navigating to battery details:", battery.id, "Battery Object:", battery);
             // Use string IDs consistently
             sessionStorage.setItem('lastViewedBatteryId', String(battery.id));
             // Add battery data to sessionStorage for better reliability

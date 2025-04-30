@@ -207,9 +207,13 @@ export default function ListBattery() {
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     console.log("Form submission data:", data);
     try {
+      // Auto-generate title from capacity and manufacturer
+      const generatedTitle = `${data.capacity} kWh ${data.manufacturer} Battery`;
+      
       const result = await mutation.mutateAsync({
         ...data,
-        description: "No description provided" // Add default description
+        title: generatedTitle,
+        description: "Battery energy storage system" // Add default description
       } as InsertBattery);
       console.log("Mutation result:", result);
     } catch (error) {
@@ -276,22 +280,7 @@ export default function ListBattery() {
                   <div>
                     <h2 className="text-lg font-semibold mb-4">Basic Information</h2>
                     <div className="space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="title"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Title*</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g. Tesla Powerwall 2 Home Battery" {...field} />
-                            </FormControl>
-                            <FormDescription>
-                              A clear, descriptive title for your battery listing
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      
 
                       
 
@@ -309,6 +298,11 @@ export default function ListBattery() {
                               <FormControl>
                                 <Input type="text" placeholder="e.g. 5000" {...field} />
                               </FormControl>
+                              {form.watch("capacity") && field.value && (
+                                <div className="text-xs text-neutral-600 mt-1">
+                                  Price per kWh: €{(Number(field.value) / Number(form.watch("capacity"))).toFixed(2)}/kWh
+                                </div>
+                              )}
                               <FormMessage />
                             </FormItem>
                           )}

@@ -5,16 +5,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 
 const inquiryFormSchema = z.object({
   message: z.string().min(10, "Message must be at least 10 characters"),
-  contactEmail: z.string().email("Invalid email address").optional(),
 });
 
 type InquiryFormValues = z.infer<typeof inquiryFormSchema>;
@@ -25,14 +23,15 @@ interface BatteryInquiryProps {
 }
 
 export default function BatteryInquiry({ batteryId, batteryTitle }: BatteryInquiryProps) {
+  console.log("BatteryInquiry component rendering with props:", { batteryId, batteryTitle });
   const { user } = useAuth();
+  console.log("User data in BatteryInquiry:", user);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<InquiryFormValues>({
     resolver: zodResolver(inquiryFormSchema),
     defaultValues: {
       message: "",
-      contactEmail: user?.email || "",
     },
   });
 
@@ -48,18 +47,18 @@ export default function BatteryInquiry({ batteryId, batteryTitle }: BatteryInqui
 
     try {
       setIsSubmitting(true);
-      
+
       await apiRequest("POST", "/api/inquiries", {
         batteryId,
         message: data.message,
-        contactEmail: data.contactEmail,
+        contactEmail: user.email, // Use the logged-in user's email
       });
-      
+
       toast({
         title: "Inquiry sent",
         description: "Your message has been sent to the battery owner",
       });
-      
+
       form.reset();
     } catch (error) {
       console.error("Error sending inquiry:", error);
@@ -75,9 +74,9 @@ export default function BatteryInquiry({ batteryId, batteryTitle }: BatteryInqui
 
   if (!user) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Interested in this battery?</CardTitle>
+      <Card className="w-full max-w-md mx-auto shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Interested in this battery?</CardTitle>
           <CardDescription>Please log in to contact the seller</CardDescription>
         </CardHeader>
       </Card>
@@ -85,54 +84,47 @@ export default function BatteryInquiry({ batteryId, batteryTitle }: BatteryInqui
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Contact about this battery</CardTitle>
-        <CardDescription>Send a message about "{batteryTitle}"</CardDescription>
+    <Card className="w-full max-w-md mx-auto shadow-sm">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">Contact about this battery</CardTitle>
+        <CardDescription className="text-xs">Send a message about "{batteryTitle}"</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-0">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+            <div className="text-xs text-gray-500">
+              You will be contacted at: <span className="font-medium">{user.email}</span>
+            </div>
+
             <FormField
               control={form.control}
               name="message"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Your message</FormLabel>
+                <FormItem className="space-y-1">
+                  <FormLabel className="text-xs">Your message</FormLabel>
                   <FormControl>
                     <Textarea 
                       placeholder="I'm interested in this battery. Can you provide more information about..." 
                       {...field}
-                      rows={4}
+                      rows={3}
+                      className="resize-none text-sm"
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )}
             />
-            
-            <FormField
-              control={form.control}
-              name="contactEmail"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contact email (optional)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="your@email.com" 
-                      type="email" 
-                      {...field} 
-                      value={field.value || ""}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Sending..." : "Send Inquiry"}
-            </Button>
+
+            <div className="flex justify-end">
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="w-auto px-4"
+                size="sm"
+              >
+                {isSubmitting ? "Sending..." : "Send Inquiry"}
+              </Button>
+            </div>
           </form>
         </Form>
       </CardContent>

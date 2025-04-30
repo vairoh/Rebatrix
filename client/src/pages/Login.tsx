@@ -20,7 +20,7 @@ export default function Login() {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      setLocation("/profile");
+      setLocation("/");
     }
   }, [user, setLocation]);
 

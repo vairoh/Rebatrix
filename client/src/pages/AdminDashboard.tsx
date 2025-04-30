@@ -72,7 +72,7 @@ export default function AdminDashboard() {
       
       <Tabs defaultValue="logins" className="w-full">
         <TabsList className="mb-4">
-          <TabsTrigger value="logins">User Logins ({logins.length})</TabsTrigger>
+          <TabsTrigger value="logins">User Logins ({logins.filter(login => login.userId !== user?.id).length})</TabsTrigger>
           <TabsTrigger value="inquiries">Inquiries ({inquiries.length})</TabsTrigger>
         </TabsList>
         
@@ -84,7 +84,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <Table>
-                <TableCaption>A list of all user logins</TableCaption>
+                <TableCaption>A list of user logins (excluding your own)</TableCaption>
                 <TableHeader>
                   <TableRow>
                     <TableHead>User ID</TableHead>
@@ -93,17 +93,19 @@ export default function AdminDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {logins.length > 0 ? (
-                    logins.map((login, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{login.userId}</TableCell>
-                        <TableCell>{login.email}</TableCell>
-                        <TableCell>{new Date(login.timestamp).toLocaleString()}</TableCell>
-                      </TableRow>
-                    ))
+                  {logins.filter(login => login.userId !== user?.id).length > 0 ? (
+                    logins
+                      .filter(login => login.userId !== user?.id)
+                      .map((login, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{login.userId}</TableCell>
+                          <TableCell>{login.email}</TableCell>
+                          <TableCell>{new Date(login.timestamp).toLocaleString()}</TableCell>
+                        </TableRow>
+                      ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center">No login data available</TableCell>
+                      <TableCell colSpan={3} className="text-center">No other user login data available</TableCell>
                     </TableRow>
                   )}
                 </TableBody>
