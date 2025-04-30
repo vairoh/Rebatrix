@@ -1,0 +1,199 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 0%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 40%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 0%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 0%;
+  --border: 0 0% 85%;
+  --input: 0 0% 90%;
+  --primary: 0 0% 0%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 20%;
+  --secondary-foreground: 0 0% 100%;
+  --accent: 0 0% 30%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 0% 40%;
+  --destructive-foreground: 0 0% 100%;
+  --ring: 0 0% 80%;
+  --radius: 0.25rem;
+  --chart-1: 0 0% 0%;
+  --chart-2: 0 0% 20%;
+  --chart-3: 0 0% 40%;
+  --chart-4: 0 0% 60%;
+  --chart-5: 0 0% 80%;
+  --sidebar-background: 0 0% 10%;
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-primary: 0 0% 0%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 0 0% 15%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 0 0% 20%;
+  --sidebar-ring: 0 0% 80%;
+}
+
+.dark {
+  --background: 0 0% 10%;
+  --foreground: 0 0% 98%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 65%;
+  --popover: 0 0% 10%;
+  --popover-foreground: 0 0% 98%;
+  --card: 0 0% 10%;
+  --card-foreground: 0 0% 98%;
+  --border: 0 0% 20%;
+  --input: 0 0% 20%;
+  --primary: 0 0% 98%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 0 0% 80%;
+  --secondary-foreground: 0 0% 0%;
+  --accent: 0 0% 70%;
+  --accent-foreground: 0 0% 0%;
+  --destructive: 0 0% 60%;
+  --destructive-foreground: 0 0% 0%;
+  --ring: 0 0% 80%;
+  --chart-1: 0 0% 98%;
+  --chart-2: 0 0% 80%;
+  --chart-3: 0 0% 60%;
+  --chart-4: 0 0% 40%;
+  --chart-5: 0 0% 20%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-neutral-100 text-neutral-900;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading text-black;
+  }
+
+  p {
+    @apply text-neutral-800;
+  }
+
+  /* Ensure proper contrast for all text */
+  .text-primary {
+    @apply text-black;
+  }
+  
+  .text-secondary {
+    @apply text-neutral-700;
+  }
+  
+  .text-muted {
+    @apply text-neutral-600;
+  }
+  
+  /* Button styling */
+  .btn-primary {
+    @apply bg-black text-white hover:bg-neutral-800;
+  }
+  
+  .btn-secondary {
+    @apply bg-neutral-700 text-white hover:bg-neutral-600;
+  }
+  
+  .btn-outline {
+    @apply border border-black text-black hover:bg-black hover:text-white;
+  }
+  
+  /* Reducing spacing between containers */
+  .container {
+    @apply py-4;
+  }
+  
+  .section {
+    @apply py-6 md:py-8;
+  }
+  
+  /* Card styling */
+  .card {
+    @apply bg-white shadow-sm border border-neutral-200;
+  }
+}
+
+/* Add custom animation classes */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+  
+  .animate-pulse-slow {
+    animation: pulse 3s infinite;
+  }
+  
+  .battery-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .battery-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  .search-suggestions {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease, border-width 0.3s ease;
+    border-width: 0;
+    padding: 0 0.75rem;
+  }
+  
+  .search-container.active .search-suggestions {
+    max-height: 300px;
+    border-width: 1px;
+    padding: 0.75rem;
+  }
+  
+  .staggered-appear > * {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: appear 0.5s ease forwards;
+  }
+  
+  .staggered-appear > *:nth-child(1) { animation-delay: 0.1s; }
+  .staggered-appear > *:nth-child(2) { animation-delay: 0.2s; }
+  .staggered-appear > *:nth-child(3) { animation-delay: 0.3s; }
+  .staggered-appear > *:nth-child(4) { animation-delay: 0.4s; }
+  .staggered-appear > *:nth-child(5) { animation-delay: 0.5s; }
+  .staggered-appear > *:nth-child(6) { animation-delay: 0.6s; }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes slideUp {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes appear {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.font-heading {
+  font-family: 'Montserrat', sans-serif;
+}
+
+.font-sans {
+  font-family: 'Inter', sans-serif;
+}
