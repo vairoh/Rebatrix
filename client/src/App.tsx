@@ -13,6 +13,8 @@ import Footer from "@/components/layout/Footer";
 import { ProtectedContent } from "@/components/auth/ProtectedRoute";
 import { AuthProvider } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/toaster";
+import EditBattery from "@/pages/EditBattery"; // Added import
+import AdminDashboard from "./pages/AdminDashboard"; // Added import
 
 // Create a client
 const queryClient = new QueryClient();
@@ -30,6 +32,8 @@ const ProtectedProfile = () => (
   </ProtectedContent>
 );
 
+// Placeholder for EditBattery component - needs to be implemented separately
+
 function Router() {
   return (
     <>
@@ -40,9 +44,17 @@ function Router() {
           <Route path="/marketplace" component={Marketplace} />
           <Route path="/battery/:id" component={BatteryDetail} />
           <Route path="/list-battery" component={ProtectedListBattery} />
+          <Route path="/edit-battery/:id">
+            {() => (
+              <ProtectedContent>
+                <EditBattery />
+              </ProtectedContent>
+            )}
+          </Route>
           <Route path="/profile" component={ProtectedProfile} />
           <Route path="/login" component={Login} />
           <Route path="/signup" component={Signup} />
+          <Route path="/admin" component={AdminDashboard} /> {/* Added admin route */}
           <Route component={NotFound} />
         </Switch>
       </main>

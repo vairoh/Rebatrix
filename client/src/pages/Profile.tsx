@@ -1,11 +1,13 @@
 import { useAuth } from "@/hooks/use-auth";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { fadeIn } from "@/lib/motion";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
+import { BatteryCard } from "@/components/batteries/BatteryCard";
 
 export default function Profile() {
   const { user, isLoading, logout } = useAuth();
@@ -39,9 +41,16 @@ export default function Profile() {
   // If no user and not loading, the redirect in useEffect will handle it
   if (!user) return null;
 
-  // For the user's batteries, we would need to fetch them from the API
-  // For now, let's mock that there are no listings
-  const userBatteries = [];
+  // Fetch user's batteries
+  const { data: userBatteries = [], isLoading: loadingBatteries } = useQuery({
+    queryKey: [`/api/users/${user.id}/batteries`],
+    queryFn: async () => {
+      const response = await fetch(`/api/users/${user.id}/batteries`);
+      if (!response.ok) throw new Error('Failed to fetch batteries');
+      return response.json();
+    },
+    enabled: !!user?.id
+  });
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -59,15 +68,19 @@ export default function Profile() {
                 <div className="inline-flex items-center justify-center w-20 h-20 bg-black text-white rounded-full mb-4">
                   <span className="text-2xl font-bold">{user.email.charAt(0).toUpperCase()}</span>
                 </div>
-                <h2 className="text-lg font-bold truncate max-w-[200px]">{user.email}</h2>
+                <h2 className="text-lg font-bold w-full overflow-hidden text-ellipsis max-w-full sm:max-w-[250px] whitespace-nowrap">
+                  <span title={user.email}>{user.email}</span>
+                </h2>
                 <p className="text-xs text-black/60">{user.company}</p>
                 <p className="text-xs mt-1">{user.location}, {user.country}</p>
               </div>
 
               <div className="border-t border-black/10 pt-4">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-2 overflow-hidden text-ellipsis hover:overflow-visible w-full">
                   <span className="text-xs font-medium">Email</span>
-                  <span className="text-xs truncate max-w-[160px]">{user.email}</span>
+                  <span className="text-xs max-w-[calc(100%-80px)] whitespace-nowrap overflow-hidden text-ellipsis" title={user.email}>
+                    {user.email}
+                  </span>
                 </div>
                 {user.phone && (
                   <div className="flex items-center justify-between mb-2">
@@ -112,7 +125,11 @@ export default function Profile() {
           <div className="w-full md:w-2/3">
             <h1 className="text-2xl font-bold mb-6">My Battery Listings</h1>
 
-            {userBatteries.length === 0 ? (
+            {loadingBatteries ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-black" />
+              </div>
+            ) : userBatteries.length === 0 ? (
               <div className="bg-white border border-black/20 rounded-lg p-8 text-center">
                 <h3 className="text-lg font-medium mb-2">No Listings Yet</h3>
                 <p className="text-black/60 mb-6">
@@ -126,9 +143,10 @@ export default function Profile() {
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4">
-                {/* This would map through user batteries if we had any */}
-                {/* {userBatteries.map((battery) => (...))} */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {userBatteries.map((battery) => (
+                  <BatteryCard key={battery.id} battery={battery} />
+                ))}
               </div>
             )}
 

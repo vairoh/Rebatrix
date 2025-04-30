@@ -12,17 +12,63 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import BatteryInquiry from "@/components/batteries/BatteryInquiry"; // Import BatteryInquiry component
 
 export default function BatteryDetail() {
   const { id } = useParams();
   const [, navigate] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
-  const batteryId = parseInt(id || "0");
+
+  // Improve the ID parsing - handle string IDs as well
+  const batteryId = id ? (isNaN(parseInt(id)) ? id : parseInt(id)) : null;
+
+  console.log("Battery ID from URL:", id, "Parsed Battery ID:", batteryId);
+
+  // State to track if current user is the owner of this battery
+  const [isOwner, setIsOwner] = useState(false);
+
+  const fetchBattery = async (id: string | number) => {
+    console.log(`Manually fetching battery with ID: ${id}`);
+
+    // Try to get from sessionStorage first as a fallback
+    const cachedData = sessionStorage.getItem(`battery-${id}`);
+    if (cachedData) {
+      try {
+        const parsedData = JSON.parse(cachedData);
+        console.log("Using cached battery data:", parsedData);
+        return parsedData;
+      } catch (e) {
+        console.error("Error parsing cached battery data:", e);
+      }
+    }
+
+    // If no cached data, fetch from API
+    const response = await fetch(`/api/batteries/${id}`);
+    if (!response.ok) {
+      console.error(`Error fetching battery: ${response.status} ${response.statusText}`);
+      const errorData = await response.json().catch(() => ({}));
+      console.error("Error details:", errorData);
+      throw new Error(`Failed to fetch battery: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log("Battery data received:", data);
+    return data;
+  };
 
   const { data: battery, isLoading, error } = useQuery<Battery>({
-    queryKey: [`/api/batteries/${batteryId}`],
-    enabled: !isNaN(batteryId) && batteryId > 0,
+    queryKey: [`battery-${batteryId}`],
+    queryFn: () => fetchBattery(batteryId!),
+    enabled: !!batteryId,
+    retry: 2,
+    staleTime: 0, // Don't use cached data
+    onError: (err) => {
+      console.error("Error fetching battery details:", err);
+    },
+    onSuccess: (data) => {
+      console.log("Successfully fetched battery details:", data);
+    }
   });
 
   const [showContactForm, setShowContactForm] = useState(false);
@@ -32,7 +78,7 @@ export default function BatteryDetail() {
     email: "",
     message: "",
   });
-  
+
   // Handler for contact seller button - checks for authentication
   const handleContactSellerClick = () => {
     if (!user) {
@@ -49,11 +95,11 @@ export default function BatteryDetail() {
     }
   };
 
-  // Set SEO meta tags
+  // Set SEO meta tags and check ownership
   useEffect(() => {
     if (battery) {
       document.title = `${battery.title} | Rebatrix Battery Marketplace`;
-      
+
       // Update meta description
       const metaDescription = document.querySelector('meta[name="description"]');
       if (metaDescription) {
@@ -62,8 +108,15 @@ export default function BatteryDetail() {
           `${battery.batteryType} ${battery.manufacturer} ${battery.title} - ${battery.capacity} kWh ${battery.technologyType} battery. ${battery.description.slice(0, 150)}...`
         );
       }
+
+      // Check if current user is the owner of this battery
+      if (user && battery.userId === user.id) {
+        setIsOwner(true);
+      } else {
+        setIsOwner(false);
+      }
     }
-  }, [battery]);
+  }, [battery, user]);
 
   const getBadgeColor = (type: string) => {
     switch (type) {
@@ -129,6 +182,8 @@ export default function BatteryDetail() {
   }
 
   if (error || !battery) {
+    console.error("Battery detail error:", error);
+
     return (
       <div className="container mx-auto px-4 py-12">
         <Card className="max-w-md mx-auto">
@@ -140,12 +195,30 @@ export default function BatteryDetail() {
               <h1 className="text-2xl font-bold text-gray-900 mb-4">Battery Not Found</h1>
               <p className="mb-6 text-gray-600">
                 We couldn't find the battery you're looking for. It may have been removed or the ID is incorrect.
+                <br/><br/>
               </p>
-              <Link href="/marketplace">
-                <Button>
-                  Return to Marketplace
-                </Button>
-              </Link>
+              <div className="mb-5">
+                <span className="text-sm text-gray-500">Debug info: ID={id} (type: {typeof id})</span>
+                {error && (
+                  <div className="mt-4 p-4 bg-red-50 text-xs text-red-800 font-mono rounded overflow-x-auto">
+                    <pre>{JSON.stringify(error, null, 2)}</pre>
+                  </div>
+                )}
+              </div>
+              <p className="mb-6 text-gray-600">
+              </p>
+              <div className="flex gap-4">
+                <Link href="/marketplace">
+                  <Button>
+                    Return to Marketplace
+                  </Button>
+                </Link>
+                <Link href="/profile">
+                  <Button variant="outline">
+                    Go to Profile
+                  </Button>
+                </Link>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -294,14 +367,30 @@ export default function BatteryDetail() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.7 }}
                 >
-                  <Button 
-                    size="lg" 
-                    className="flex items-center gap-2"
-                    onClick={handleContactSellerClick}
-                  >
-                    <i className="ri-mail-line"></i>
-                    Contact Seller
-                  </Button>
+                  {isOwner ? (
+                    <Button 
+                      size="lg" 
+                      className="flex items-center gap-2"
+                      onClick={() => {
+                        console.log("Navigating to edit page with ID:", battery.id);
+                        // Store battery data in session storage for faster loading
+                        sessionStorage.setItem(`battery-${battery.id}`, JSON.stringify(battery));
+                        navigate(`/edit-battery/${battery.id}`);
+                      }}
+                    >
+                      <i className="ri-edit-line"></i>
+                      Edit Listing
+                    </Button>
+                  ) : (
+                    <Button 
+                      size="lg" 
+                      className="flex items-center gap-2"
+                      onClick={handleContactSellerClick}
+                    >
+                      <i className="ri-mail-line"></i>
+                      Contact Seller
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     size="lg"
@@ -314,6 +403,14 @@ export default function BatteryDetail() {
               </div>
             </div>
 
+            {/* Battery Inquiry Form */}
+            <div className="mt-8">
+              <BatteryInquiry 
+                batteryId={battery.id} 
+                batteryTitle={battery.title} 
+              />
+            </div>
+
             {/* Detailed specifications */}
             <div className="p-6 md:p-8 border-t border-neutral-200">
               <Tabs defaultValue="specifications">
@@ -322,7 +419,7 @@ export default function BatteryDetail() {
                   <TabsTrigger value="certifications">Certifications</TabsTrigger>
                   <TabsTrigger value="shipping">Shipping & Availability</TabsTrigger>
                 </TabsList>
-                
+
                 <TabsContent value="specifications">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-6">
                     <div className="flex justify-between py-2 border-b border-neutral-100">
@@ -388,7 +485,7 @@ export default function BatteryDetail() {
                     }
                   </div>
                 </TabsContent>
-                
+
                 <TabsContent value="certifications">
                   <div className="mb-6">
                     <h3 className="text-lg font-semibold mb-3">Certification Information</h3>
@@ -403,7 +500,7 @@ export default function BatteryDetail() {
                     )}
                   </div>
                 </TabsContent>
-                
+
                 <TabsContent value="shipping">
                   <div className="mb-6">
                     <h3 className="text-lg font-semibold mb-3">Availability & Shipping</h3>
@@ -464,7 +561,7 @@ export default function BatteryDetail() {
                       <i className="ri-close-line text-xl"></i>
                     </button>
                   </div>
-                  
+
                   <form onSubmit={handleSubmitInquiry}>
                     <div className="space-y-4">
                       <div>
@@ -480,7 +577,7 @@ export default function BatteryDetail() {
                           className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                         />
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
                           Company
@@ -494,7 +591,7 @@ export default function BatteryDetail() {
                           className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                         />
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
                           Email
@@ -508,7 +605,7 @@ export default function BatteryDetail() {
                           className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                         />
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
                           Message
@@ -523,7 +620,7 @@ export default function BatteryDetail() {
                           placeholder={`I'm interested in this ${battery.title}. Please provide more information.`}
                         ></textarea>
                       </div>
-                      
+
                       <div className="flex justify-end gap-3 pt-2">
                         <Button 
                           type="button" 

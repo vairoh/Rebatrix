@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { batterySearchSchema, insertBatterySchema, insertUserSchema } from "@shared/schema";
 import { z, ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { hashPassword, registerAuthRoutes } from "./auth";
+import { hashPassword, registerAuthRoutes, isAuthenticated } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // All routes are prefixed with /api
@@ -107,44 +107,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/batteries/:id", async (req, res) => {
     try {
-      const batteryId = parseInt(req.params.id);
-      if (isNaN(batteryId)) {
-        return res.status(400).json({ message: "Invalid battery ID" });
-      }
+      const idParam = req.params.id;
+      console.log("Battery ID requested:", idParam, "Type:", typeof idParam);
 
-      const battery = await storage.getBattery(batteryId);
+      // Try to parse as number if possible
+      const batteryId = parseInt(idParam);
+
+      // If it's a valid number, use it; otherwise use the string ID directly
+      const id = !isNaN(batteryId) ? batteryId : idParam;
+
+      // Debug information
+      console.log("Battery ID to search for:", id, "Type:", typeof id);
+      
+      const battery = await storage.getBattery(id);
+      console.log("Battery search result:", battery ? `Found with ID ${battery.id}` : "Not found");
+
       if (!battery) {
+        console.log("Battery not found for ID:", id);
         return res.status(404).json({ message: "Battery not found" });
       }
 
+      console.log("Battery retrieval final result:", battery ? `Found ${battery.id}: ${battery.title}` : "Not found");
       return res.json(battery);
     } catch (error) {
+      console.error("Error getting battery:", error);
       return res.status(500).json({ message: "Failed to get battery" });
     }
   });
 
-  app.put("/api/batteries/:id", async (req, res) => {
+  // Add endpoint to update a battery
+  app.put("/api/batteries/:id", isAuthenticated, async (req, res) => {
     try {
-      const batteryId = parseInt(req.params.id);
-      if (isNaN(batteryId)) {
-        return res.status(400).json({ message: "Invalid battery ID" });
-      }
+      const idParam = req.params.id;
+      const batteryId = parseInt(idParam);
+      const id = !isNaN(batteryId) ? batteryId : idParam;
 
-      // Check if battery exists
-      const existingBattery = await storage.getBattery(batteryId);
+      // Get the existing battery to check ownership
+      const existingBattery = await storage.getBattery(id);
       if (!existingBattery) {
         return res.status(404).json({ message: "Battery not found" });
       }
 
-      // Partial validation for update
-      const batteryData = insertBatterySchema.partial().parse(req.body);
-
-      const updatedBattery = await storage.updateBattery(batteryId, batteryData);
-      return res.json(updatedBattery);
-    } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: fromZodError(error).message });
+      // Check if the user is authorized to update this battery
+      const userId = req.user?.id;
+      if (!userId || existingBattery.userId !== userId) {
+        return res.status(403).json({ message: "Unauthorized: You can only update your own listings" });
       }
+
+      const updatedBattery = req.body;
+      const result = await storage.updateBattery(id, updatedBattery);
+
+      if (!result) {
+        return res.status(500).json({ message: "Failed to update battery" });
+      }
+
+      console.log("Battery updated successfully:", result);
+      return res.json(result);
+    } catch (error) {
+      console.error("Error updating battery:", error);
       return res.status(500).json({ message: "Failed to update battery" });
     }
   });
@@ -257,6 +277,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.json(batteries);
     } catch (error) {
       return res.status(500).json({ message: "Failed to get user batteries" });
+    }
+  });
+  
+  // Submit an inquiry about a battery
+  app.post("/api/inquiries", isAuthenticated, async (req, res) => {
+    try {
+      const { batteryId, message, contactEmail } = req.body;
+      const userId = (req as any).userId;
+      
+      if (!batteryId || !message) {
+        return res.status(400).json({ message: "Battery ID and message are required" });
+      }
+      
+      const battery = await storage.getBattery(batteryId);
+      if (!battery) {
+        return res.status(404).json({ message: "Battery not found" });
+      }
+      
+      const inquiry = await storage.createInquiry({ 
+        userId, 
+        batteryId, 
+        message,
+        contactEmail 
+      });
+      
+      return res.status(201).json(inquiry);
+    } catch (error) {
+      console.error("Error creating inquiry:", error);
+      return res.status(500).json({ message: "Failed to submit inquiry" });
+    }
+  });
+  
+  // Admin routes for login tracking and inquiries
+  app.get("/api/admin/logins", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const user = await storage.getUser(userId);
+      
+      // Basic admin check (you might want more sophisticated roles)
+      if (!user || user.id !== 1) { // Assuming user ID 1 is admin
+        return res.status(403).json({ message: "Not authorized to access admin data" });
+      }
+      
+      const logins = await storage.getLogins();
+      return res.json(logins);
+    } catch (error) {
+      console.error("Error getting logins:", error);
+      return res.status(500).json({ message: "Failed to get login data" });
+    }
+  });
+  
+  app.get("/api/admin/inquiries", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const user = await storage.getUser(userId);
+      
+      // Basic admin check
+      if (!user || user.id !== 1) { // Assuming user ID 1 is admin
+        return res.status(403).json({ message: "Not authorized to access admin data" });
+      }
+      
+      const inquiries = await storage.getInquiries();
+      return res.json(inquiries);
+    } catch (error) {
+      console.error("Error getting inquiries:", error);
+      return res.status(500).json({ message: "Failed to get inquiry data" });
     }
   });
 

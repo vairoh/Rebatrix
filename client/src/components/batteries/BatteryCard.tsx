@@ -17,6 +17,7 @@ export function BatteryCard({ battery }: BatteryCardProps) {
   const [_, setLocation] = useLocation();
 
   const handleBatteryDetails = (e: React.MouseEvent) => {
+    console.log("Handle Battery Details called for battery:", battery);
     if (!user) {
       e.preventDefault();
       toast({
@@ -51,6 +52,8 @@ export function BatteryCard({ battery }: BatteryCardProps) {
       return batteryType === 'new' ? 'New' : battery.batteryType === 'used' ? 'Used' : 'Second-Life';
     }
   };
+
+  const isOwner = user && user.id === battery.userId; // Added owner check
 
   return (
     <motion.div
@@ -126,14 +129,21 @@ export function BatteryCard({ battery }: BatteryCardProps) {
             </span>
           </div>
 
-          <Link href={`/battery/${battery.id}`} onClick={handleBatteryDetails}>
+          <Link href={`/battery/${battery.id}`} onClick={(e) => {
+            console.log("Navigating to battery details:", battery.id, battery.title, "Battery Object:", battery);
+            // Use string IDs consistently
+            sessionStorage.setItem('lastViewedBatteryId', String(battery.id));
+            // Add battery data to sessionStorage for better reliability
+            sessionStorage.setItem(`battery-${battery.id}`, JSON.stringify(battery));
+            return handleBatteryDetails(e);
+          }}>
             <motion.div
               className="text-black hover:text-black font-medium flex items-center text-xs cursor-pointer underline-offset-2 hover:underline"
               initial="initial"
               whileHover="hover"
               variants={hoverScale}
             >
-              Details <motion.i 
+              {isOwner ? 'Edit' : 'Details'} <motion.i 
                 className="ri-arrow-right-line ml-0.5"
                 initial={{ x: 0 }}
                 whileHover={{ x: 3 }}

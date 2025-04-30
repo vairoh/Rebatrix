@@ -84,3 +84,12 @@ export interface Stats {
   transactions: number;
   countries: number;
 }
+
+export interface InsertBattery extends Omit<Battery, 'id' | 'createdAt' | 'updatedAt'> {
+}
+
+export interface UpdateBattery extends Omit<Battery, 'id' | 'userId' | 'createdAt' | 'updatedAt'> {
+}
+
+export interface BatterySearch {
+}

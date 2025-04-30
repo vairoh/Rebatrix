@@ -9,15 +9,27 @@ async function throwIfResNotOk(res: Response) {
 
 export async function apiRequest(
   method: string,
-  url: string,
+  endpoint: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
+  const url = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+  // Get auth token from localStorage
+  const token = localStorage.getItem('auth_token');
+
+  const options: RequestInit = {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : '',
+    },
     credentials: "include",
-  });
+  };
+
+  if (data) {
+    options.body = JSON.stringify(data);
+  }
+  const res = await fetch(url, options);
 
   await throwIfResNotOk(res);
   return res;

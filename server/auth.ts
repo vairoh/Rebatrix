@@ -30,7 +30,9 @@ export function isAuthenticated(req: Request, res: Response, next: NextFunction)
   }
 
   // Attach user ID to request for later use
-  (req as any).userId = sessions.get(sessionId);
+  const userId = sessions.get(sessionId);
+  (req as any).user = { id: userId };
+  (req as any).userId = userId;
   next();
 }
 
@@ -87,6 +89,9 @@ export function registerAuthRoutes(app: any) {
       // Create a session
       const sessionId = randomBytes(32).toString("hex");
       sessions.set(sessionId, user.id);
+
+      // Track the login
+      await storage.trackLogin(user.id, user.email);
 
       // Don't send the password to the client
       const { password: _, ...userWithoutPassword } = user;

@@ -13,7 +13,15 @@ interface DB {
 }
 
 class Storage {
-  private db: DB = { users: [], batteries: [], nextUserId: 1, nextBatteryId: 1 };
+  private db: DB = { 
+    users: [], 
+    batteries: [], 
+    logins: [], 
+    inquiries: [],
+    nextUserId: 1, 
+    nextBatteryId: 1,
+    nextInquiryId: 1
+  };
 
   constructor() {
     this.loadDB();
@@ -23,6 +31,11 @@ class Storage {
     try {
       const data = await fs.readFile(DB_FILE, 'utf-8');
       this.db = JSON.parse(data);
+      
+      // Initialize new collections if they don't exist
+      if (!this.db.logins) this.db.logins = [];
+      if (!this.db.inquiries) this.db.inquiries = [];
+      if (!this.db.nextInquiryId) this.db.nextInquiryId = 1;
     } catch (error) {
       // If file doesn't exist, we'll create it on first save
       await this.saveDB();
@@ -70,32 +83,96 @@ class Storage {
     await this.saveDB();
     return battery;
   }
+  
+  // Track user logins
+  async trackLogin(userId: number, email: string): Promise<void> {
+    const loginEntry = {
+      userId,
+      email,
+      timestamp: new Date().toISOString()
+    };
+    
+    this.db.logins.push(loginEntry);
+    await this.saveDB();
+  }
+  
+  // Get all login records
+  async getLogins(): Promise<any[]> {
+    return this.db.logins || [];
+  }
+  
+  // Create an inquiry
+  async createInquiry(data: { 
+    userId: number, 
+    batteryId: number, 
+    message: string, 
+    contactEmail?: string 
+  }): Promise<any> {
+    const inquiry = {
+      id: this.db.nextInquiryId++,
+      ...data,
+      timestamp: new Date().toISOString(),
+      status: 'new'
+    };
+    
+    this.db.inquiries.push(inquiry);
+    await this.saveDB();
+    return inquiry;
+  }
+  
+  // Get all inquiries
+  async getInquiries(): Promise<any[]> {
+    return this.db.inquiries || [];
+  }
 
-  async getBattery(id: number): Promise<Battery | undefined> {
-    return this.db.batteries.find(b => b.id === id);
+  async getBattery(id: number | string): Promise<Battery | undefined> {
+    const batteriesData = await this.getBatteries(100, 0);
+    // Handle both string and number IDs
+    const battery = batteriesData.find(b => {
+      if (typeof id === 'number') {
+        console.log("Numeric comparison result:", b.id === id ? "Found" : "Not found");
+        return b.id === id;
+      } else {
+        // Convert both to strings for comparison to handle string IDs
+        console.log("String comparison result:", String(b.id) === id ? "Found" : "Not found");
+        return String(b.id) === id;
+      }
+    });
+    return battery;
+  }
+
+  async updateBattery(id: number | string, updatedBattery: Partial<Battery>): Promise<Battery | undefined> {
+    // Find the battery to update
+    const batteryToUpdate = await this.getBattery(id);
+    if (!batteryToUpdate) {
+      return undefined;
+    }
+
+    // Update the battery data
+    const updatedBatteryData = {
+      ...batteryToUpdate,
+      ...updatedBattery,
+      // Preserve the original ID and user ID
+      id: batteryToUpdate.id,
+      userId: batteryToUpdate.userId,
+      updatedAt: new Date().toISOString()
+    };
+
+    // Replace the battery in the array
+    const index = this.db.batteries.findIndex(b => b.id === batteryToUpdate.id);
+    if (index !== -1) {
+      this.db.batteries[index] = updatedBatteryData;
+      await this.saveDB();
+      return updatedBatteryData;
+    }
+
+    return undefined;
   }
 
   async getBatteries(limit = 20, offset = 0): Promise<Battery[]> {
     return this.db.batteries
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(offset, offset + limit);
-  }
-
-  async updateBattery(id: number, battery: Partial<InsertBattery>): Promise<Battery | undefined> {
-    const index = this.db.batteries.findIndex(b => b.id === id);
-    if (index === -1) {
-      return undefined;
-    }
-
-    const updatedBattery: Battery = {
-      ...this.db.batteries[index],
-      ...battery,
-      updatedAt: new Date().toISOString()
-    };
-
-    this.db.batteries[index] = updatedBattery;
-    await this.saveDB();
-    return updatedBattery;
   }
 
   async deleteBattery(id: number): Promise<boolean> {
@@ -194,6 +271,29 @@ class Storage {
     return this.db.batteries
       .filter((battery) => battery.userId === userId)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  // Debug methods
+  getDebugDump(): any {
+    return {
+      batteryCount: this.db.batteries.length,
+      userCount: this.db.users.length,
+      nextBatteryId: this.db.nextBatteryId,
+      nextUserId: this.db.nextUserId,
+      batteryIds: this.db.batteries.map(b => ({
+        id: b.id,
+        type: typeof b.id,
+        title: b.title
+      }))
+    };
+  }
+  
+  async getAllBatteryIds(): Promise<any[]> {
+    return this.db.batteries.map(b => ({
+      id: b.id,
+      type: typeof b.id,
+      title: b.title
+    }));
   }
 }
 

@@ -13,7 +13,7 @@ export default function Header() {
 
   // All navigation items are hidden in the header
   const navItems = [];
-  
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -50,7 +50,7 @@ export default function Header() {
                 <span className="font-heading font-bold text-xl text-black">rebatrix</span>
               </Link>
             </div>
-            
+
             <nav className="hidden md:ml-6 md:flex md:space-x-8">
               {navItems.map((item, index) => (
                 <motion.div
@@ -89,10 +89,10 @@ export default function Header() {
               ))}
             </nav>
           </div>
-          
+
           <div className="flex items-center">
             <SearchBox />
-            
+
             <div className="ml-4 flex items-center md:ml-6">
               {user ? (
                 // Logged in state
@@ -121,6 +121,25 @@ export default function Header() {
                       </button>
                     </motion.div>
                   </Link>
+
+                  {user.id === 1 && (
+                    <Link href="/admin">
+                      <motion.div
+                        initial="rest"
+                        whileHover="hover"
+                        whileTap="tap"
+                        variants={buttonHover}
+                        className="relative"
+                      >
+                        <button
+                          type="button"
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-black text-sm rounded-full border border-black hover:bg-gray-50 transition-colors"
+                        >
+                          <span>Admin Dashboard</span>
+                        </button>
+                      </motion.div>
+                    </Link>
+                  )}
 
                   <motion.div 
                     initial="rest"
@@ -195,7 +214,7 @@ export default function Header() {
                 </div>
               )}
             </div>
-            
+
             <div className="ml-3 -mr-2 flex md:hidden">
               <motion.button 
                 type="button"
@@ -215,7 +234,7 @@ export default function Header() {
           </div>
         </div>
       </div>
-      
+
       {/* Mobile menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
@@ -272,7 +291,7 @@ export default function Header() {
                   </Link>
                 </motion.div>
               ))}
-              
+
               {user ? (
                 <motion.div
                   variants={{
