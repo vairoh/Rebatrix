@@ -8,9 +8,49 @@
       "country": "Germany",
       "id": 1,
       "createdAt": "2025-04-30T11:16:57.549Z"
+    },
+    {
+      "email": "vaibhavghildiyal@gmail.com",
+      "password": "8ee5ac9f2560c157efaa4a3a67f29464b58ef38f38ce64469f49fd5800f433cd0c2bf6c717192eaab75fe7bf9b4f3815730799202181fff845b1b696be0bf218.99c9eae85efa00a7df2b711c2e8dcdcb",
+      "phone": "493453535",
+      "location": "Munich",
+      "country": "Germany",
+      "id": 2,
+      "createdAt": "2025-04-30T13:47:26.380Z"
     }
   ],
   "batteries": [
+    {
+      "userId": 1,
+      "title": "fffffadsfdfdf",
+      "description": "No description provided",
+      "price": "132",
+      "location": "Munich",
+      "country": "Germany",
+      "batteryType": "new",
+      "category": "residential",
+      "capacity": "222",
+      "technologyType": "rrrr",
+      "voltage": "222222",
+      "currentRating": "2222",
+      "cycleCount": 0,
+      "healthPercentage": 100,
+      "dimensions": "",
+      "weight": "",
+      "manufacturer": "aarr",
+      "modelNumber": "",
+      "yearOfManufacture": 2025,
+      "warranty": "",
+      "certifications": [],
+      "listingType": "sell",
+      "availability": true,
+      "rentalPeriod": "",
+      "images": [],
+      "additionalSpecs": {},
+      "id": 5,
+      "createdAt": "2025-04-30T11:58:21.295Z",
+      "updatedAt": "2025-04-30T13:46:24.182Z"
+    },
     {
       "userId": 1,
       "title": "afaefefege",
@@ -134,39 +174,27 @@
       "id": 1,
       "createdAt": "2025-04-30T11:22:27.498Z",
       "updatedAt": "2025-04-30T11:22:27.498Z"
+    }
+  ],
+  "nextUserId": 3,
+  "nextBatteryId": 6,
+  "logins": [
+    {
+      "userId": 1,
+      "email": "vaibhavghildiyal1990@gmail.com",
+      "timestamp": "2025-04-30T13:59:31.916Z"
+    },
+    {
+      "userId": 2,
+      "email": "vaibhavghildiyal@gmail.com",
+      "timestamp": "2025-04-30T14:00:05.275Z"
     },
     {
       "userId": 1,
-      "title": "fffffadsfdfdf",
-      "description": "No description provided",
-      "price": "132",
-      "location": "Munich",
-      "country": "Germany",
-      "batteryType": "new",
-      "category": "residential",
-      "capacity": "222",
-      "technologyType": "rrrr",
-      "voltage": "222222",
-      "currentRating": "2222",
-      "cycleCount": 0,
-      "healthPercentage": 100,
-      "dimensions": "",
-      "weight": "",
-      "manufacturer": "aarr",
-      "modelNumber": "",
-      "yearOfManufacture": 2025,
-      "warranty": "",
-      "certifications": [],
-      "listingType": "sell",
-      "availability": true,
-      "rentalPeriod": "",
-      "images": [],
-      "additionalSpecs": {},
-      "id": 5,
-      "createdAt": "2025-04-30T11:58:21.295Z",
-      "updatedAt": "2025-04-30T11:58:21.295Z"
+      "email": "vaibhavghildiyal1990@gmail.com",
+      "timestamp": "2025-04-30T14:01:08.679Z"
     }
   ],
-  "nextUserId": 2,
-  "nextBatteryId": 6
+  "inquiries": [],
+  "nextInquiryId": 1
 }
