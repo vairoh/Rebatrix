@@ -22,22 +22,22 @@
   "batteries": [
     {
       "userId": 1,
-      "title": "fffffadsfdfdf",
-      "description": "No description provided",
-      "price": "132",
+      "title": "100 kWh N/A Battery",
+      "description": "Battery energy storage system",
+      "price": "26000",
       "location": "Munich",
       "country": "Germany",
       "batteryType": "new",
-      "category": "residential",
-      "capacity": "222",
-      "technologyType": "rrrr",
-      "voltage": "222222",
-      "currentRating": "2222",
+      "category": "commercial",
+      "capacity": "100",
+      "technologyType": "LiFePO₄ ",
+      "voltage": "512",
+      "currentRating": "100",
       "cycleCount": 0,
       "healthPercentage": 100,
-      "dimensions": "",
-      "weight": "",
-      "manufacturer": "aarr",
+      "dimensions": "1200 × 1850 × 1150",
+      "weight": "1,280",
+      "manufacturer": "N/A",
       "modelNumber": "",
       "yearOfManufacture": 2025,
       "warranty": "",
@@ -49,57 +49,57 @@
       "additionalSpecs": {},
       "id": 5,
       "createdAt": "2025-04-30T11:58:21.295Z",
-      "updatedAt": "2025-04-30T13:46:24.182Z"
+      "updatedAt": "2025-04-30T20:18:01.706Z"
     },
     {
       "userId": 1,
-      "title": "afaefefege",
-      "description": "No description provided",
-      "price": "121",
-      "location": "Munich",
+      "title": "10.2 kWh N/A Battery",
+      "description": "Battery energy storage system",
+      "price": "100",
+      "location": "Baden",
       "country": "Germany",
       "batteryType": "new",
       "category": "residential",
-      "capacity": "12",
-      "technologyType": "fdfsdf",
-      "voltage": "22",
-      "currentRating": "22",
+      "capacity": "10.2",
+      "technologyType": "LiFePO₄",
+      "voltage": "230",
+      "currentRating": "43.5",
       "cycleCount": 0,
       "healthPercentage": 100,
-      "dimensions": "",
-      "weight": "",
-      "manufacturer": "arerera",
+      "dimensions": "600 × 600 × 300",
+      "weight": "120",
+      "manufacturer": "N/A",
       "modelNumber": "",
       "yearOfManufacture": 2025,
       "warranty": "",
       "certifications": [],
       "listingType": "rent",
       "availability": true,
-      "rentalPeriod": "quarterly",
+      "rentalPeriod": "monthly",
       "images": [],
       "additionalSpecs": {},
       "id": 4,
       "createdAt": "2025-04-30T11:54:06.893Z",
-      "updatedAt": "2025-04-30T11:54:06.893Z"
+      "updatedAt": "2025-04-30T20:19:11.007Z"
     },
     {
       "userId": 1,
-      "title": "aefaegegaegeg",
-      "description": "No description provided",
+      "title": "100 kWh N/A Battery",
+      "description": "Battery energy storage system",
       "price": "121",
-      "location": "Munich",
+      "location": "Cologne",
       "country": "Germany",
-      "batteryType": "new",
-      "category": "residential",
-      "capacity": "11",
-      "technologyType": "fdfadf",
-      "voltage": "22",
-      "currentRating": "33",
+      "batteryType": "used",
+      "category": "commercial",
+      "capacity": "100",
+      "technologyType": "LiFePO₄",
+      "voltage": "512",
+      "currentRating": "195",
       "cycleCount": 0,
-      "healthPercentage": 100,
-      "dimensions": "",
-      "weight": "",
-      "manufacturer": "adfdf",
+      "healthPercentage": 98,
+      "dimensions": "1200 × 1850 × 1150",
+      "weight": "1,280",
+      "manufacturer": "N/A",
       "modelNumber": "",
       "yearOfManufacture": 2025,
       "warranty": "",
@@ -111,26 +111,57 @@
       "additionalSpecs": {},
       "id": 3,
       "createdAt": "2025-04-30T11:49:17.800Z",
-      "updatedAt": "2025-04-30T11:49:17.800Z"
+      "updatedAt": "2025-04-30T20:09:55.965Z"
     },
     {
       "userId": 1,
-      "title": "13414341354134",
-      "description": "fefaefefwerwererfdgsgsgf",
-      "price": "12312",
+      "title": "1000 kWh N/A Battery",
+      "description": "Battery energy storage system",
+      "price": "72000",
+      "location": "Hamburg",
+      "country": "Germany",
+      "batteryType": "new",
+      "category": "industrial",
+      "capacity": "1000",
+      "technologyType": "LiFePO₄",
+      "voltage": "768",
+      "currentRating": "1,300",
+      "cycleCount": 0,
+      "healthPercentage": 100,
+      "dimensions": "6,058 × 2,438 × 2,591",
+      "weight": "12,000",
+      "manufacturer": "N/A",
+      "modelNumber": "",
+      "yearOfManufacture": 2025,
+      "warranty": "",
+      "certifications": [],
+      "listingType": "rent",
+      "availability": true,
+      "rentalPeriod": "yearly",
+      "images": [],
+      "additionalSpecs": {},
+      "id": 2,
+      "createdAt": "2025-04-30T11:27:32.552Z",
+      "updatedAt": "2025-04-30T20:12:50.892Z"
+    },
+    {
+      "userId": 1,
+      "title": "10 kWh N/A Battery",
+      "description": "Battery energy storage system",
+      "price": "280",
       "location": "Munich",
       "country": "Germany",
       "batteryType": "new",
       "category": "residential",
-      "capacity": "12",
-      "technologyType": "llli",
-      "voltage": "12",
-      "currentRating": "12",
+      "capacity": "10",
+      "technologyType": "LiFePO₄",
+      "voltage": "230",
+      "currentRating": "43.5",
       "cycleCount": 0,
       "healthPercentage": 100,
-      "dimensions": "",
-      "weight": "",
-      "manufacturer": "wew",
+      "dimensions": "600 × 600 × 300",
+      "weight": "118",
+      "manufacturer": "N/A",
       "modelNumber": "",
       "yearOfManufacture": 2025,
       "warranty": "",
@@ -140,40 +171,9 @@
       "rentalPeriod": "quarterly",
       "images": [],
       "additionalSpecs": {},
-      "id": 2,
-      "createdAt": "2025-04-30T11:27:32.552Z",
-      "updatedAt": "2025-04-30T11:27:32.552Z"
-    },
-    {
-      "userId": 1,
-      "title": "adfa12",
-      "description": "sdfgdgfasgagdgasdgdsaafsfdfadfadfadf",
-      "price": "121",
-      "location": "Munich",
-      "country": "Germany",
-      "batteryType": "new",
-      "category": "residential",
-      "capacity": "12",
-      "technologyType": "llli",
-      "voltage": "232",
-      "currentRating": "232",
-      "cycleCount": 0,
-      "healthPercentage": 100,
-      "dimensions": "",
-      "weight": "",
-      "manufacturer": "wew",
-      "modelNumber": "",
-      "yearOfManufacture": 2025,
-      "warranty": "",
-      "certifications": [],
-      "listingType": "rent",
-      "availability": true,
-      "rentalPeriod": "monthly",
-      "images": [],
-      "additionalSpecs": {},
       "id": 1,
       "createdAt": "2025-04-30T11:22:27.498Z",
-      "updatedAt": "2025-04-30T11:22:27.498Z"
+      "updatedAt": "2025-04-30T20:17:38.885Z"
     }
   ],
   "nextUserId": 3,
@@ -193,8 +193,117 @@
       "userId": 1,
       "email": "vaibhavghildiyal1990@gmail.com",
       "timestamp": "2025-04-30T14:01:08.679Z"
+    },
+    {
+      "userId": 2,
+      "email": "vaibhavghildiyal@gmail.com",
+      "timestamp": "2025-04-30T16:43:42.583Z"
+    },
+    {
+      "userId": 2,
+      "email": "vaibhavghildiyal@gmail.com",
+      "timestamp": "2025-04-30T16:46:49.190Z"
+    },
+    {
+      "userId": 2,
+      "email": "vaibhavghildiyal@gmail.com",
+      "timestamp": "2025-04-30T16:47:14.337Z"
+    },
+    {
+      "userId": 2,
+      "email": "vaibhavghildiyal@gmail.com",
+      "timestamp": "2025-04-30T16:50:43.499Z"
+    },
+    {
+      "userId": 2,
+      "email": "vaibhavghildiyal@gmail.com",
+      "timestamp": "2025-04-30T16:55:35.122Z"
+    },
+    {
+      "userId": 2,
+      "email": "vaibhavghildiyal@gmail.com",
+      "timestamp": "2025-04-30T16:57:43.099Z"
+    },
+    {
+      "userId": 1,
+      "email": "vaibhavghildiyal1990@gmail.com",
+      "timestamp": "2025-04-30T16:58:13.222Z"
+    },
+    {
+      "userId": 2,
+      "email": "vaibhavghildiyal@gmail.com",
+      "timestamp": "2025-04-30T16:58:36.744Z"
+    },
+    {
+      "userId": 2,
+      "email": "vaibhavghildiyal@gmail.com",
+      "timestamp": "2025-04-30T17:03:55.355Z"
+    },
+    {
+      "userId": 2,
+      "email": "vaibhavghildiyal@gmail.com",
+      "timestamp": "2025-04-30T18:14:10.626Z"
+    },
+    {
+      "userId": 1,
+      "email": "vaibhavghildiyal1990@gmail.com",
+      "timestamp": "2025-04-30T18:15:08.002Z"
+    },
+    {
+      "userId": 2,
+      "email": "vaibhavghildiyal@gmail.com",
+      "timestamp": "2025-04-30T19:39:58.221Z"
+    },
+    {
+      "userId": 1,
+      "email": "vaibhavghildiyal1990@gmail.com",
+      "timestamp": "2025-04-30T19:40:53.512Z"
+    },
+    {
+      "userId": 1,
+      "email": "vaibhavghildiyal1990@gmail.com",
+      "timestamp": "2025-04-30T19:53:50.631Z"
+    },
+    {
+      "userId": 1,
+      "email": "vaibhavghildiyal1990@gmail.com",
+      "timestamp": "2025-04-30T20:15:59.705Z"
+    },
+    {
+      "userId": 2,
+      "email": "vaibhavghildiyal@gmail.com",
+      "timestamp": "2025-04-30T20:23:13.011Z"
+    },
+    {
+      "userId": 1,
+      "email": "vaibhavghildiyal1990@gmail.com",
+      "timestamp": "2025-04-30T20:23:44.101Z"
+    },
+    {
+      "userId": 2,
+      "email": "vaibhavghildiyal@gmail.com",
+      "timestamp": "2025-04-30T20:24:55.419Z"
     }
   ],
-  "inquiries": [],
-  "nextInquiryId": 1
+  "inquiries": [
+    {
+      "id": 1,
+      "userId": 2,
+      "batteryId": 5,
+      "message": "i want to buy",
+      "contactEmail": "vaibhavghildiyal@gmail.com",
+      "timestamp": "2025-04-30T16:58:03.750Z",
+      "status": "new"
+    },
+    {
+      "id": 2,
+      "userId": 2,
+      "batteryId": 5,
+      "message": "afhadjfakfnsakn",
+      "contactEmail": "vaibhavghildiyal@gmail.com",
+      "timestamp": "2025-04-30T17:04:27.961Z",
+      "status": "new"
+    }
+  ],
+  "nextInquiryId": 3
 }
