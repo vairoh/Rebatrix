@@ -1,14 +1,13 @@
+
 import { pgTable, text, serial, integer, boolean, timestamp, numeric, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  company: text("company").notNull(),
   email: text("email").notNull().unique(),
-  phone: text("phone"),
+  password: text("password").notNull(),
+  phone: text("phone").notNull(),
   location: text("location").notNull(),
   country: text("country").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
@@ -33,35 +32,34 @@ export const listingTypes = {
   BUY: "buy",
   SELL: "sell",
   RENT: "rent",
-  LEND: "lend",
 } as const;
 
 export const batterys = pgTable("batteries", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   title: text("title").notNull(),
-  description: text("description").notNull(),
+  description: text("description"),
   price: numeric("price", { precision: 10, scale: 2 }).notNull(),
   location: text("location").notNull(),
   country: text("country").notNull(),
-  batteryType: text("battery_type").notNull(), // new, used, second-life
-  category: text("category").notNull(), // residential, commercial, industrial, etc.
-  capacity: numeric("capacity", { precision: 10, scale: 2 }).notNull(), // kWh
-  technologyType: text("technology_type").notNull(), // lithium-ion, flow, etc.
-  voltage: numeric("voltage", { precision: 10, scale: 2 }).notNull(), // V
-  currentRating: numeric("current_rating", { precision: 10, scale: 2 }), // A
+  batteryType: text("battery_type").notNull(),
+  category: text("category").notNull(),
+  capacity: numeric("capacity", { precision: 10, scale: 2 }).notNull(),
+  technologyType: text("technology_type").notNull(),
+  voltage: numeric("voltage", { precision: 10, scale: 2 }).notNull(),
+  currentRating: numeric("current_rating", { precision: 10, scale: 2 }),
   cycleCount: integer("cycle_count"),
   healthPercentage: integer("health_percentage"),
-  dimensions: text("dimensions"), // HxWxD in cm
-  weight: numeric("weight", { precision: 10, scale: 2 }), // kg
+  dimensions: text("dimensions"),
+  weight: numeric("weight", { precision: 10, scale: 2 }),
   manufacturer: text("manufacturer").notNull(),
   modelNumber: text("model_number"),
   yearOfManufacture: integer("year_of_manufacture"),
   warranty: text("warranty"),
   certifications: text("certifications").array(),
-  listingType: text("listing_type").notNull(), // buy, sell, rent, lend
+  listingType: text("listing_type").notNull(),
   availability: boolean("availability").default(true),
-  rentalPeriod: text("rental_period"), // For rental listings
+  rentalPeriod: text("rental_period"),
   images: text("images").array(),
   additionalSpecs: json("additional_specs"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -69,20 +67,22 @@ export const batterys = pgTable("batteries", {
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-  company: true,
   email: true,
-  phone: true, 
+  password: true,
+  phone: true,
   location: true,
   country: true,
 });
 
-export const insertBatterySchema = createInsertSchema(batterys).omit({ 
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+export const insertBatterySchema = createInsertSchema(batterys)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .partial({
+    description: true
+  });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -90,7 +90,6 @@ export type User = typeof users.$inferSelect;
 export type InsertBattery = z.infer<typeof insertBatterySchema>;
 export type Battery = typeof batterys.$inferSelect;
 
-// Extended schemas for validation
 export const batterySearchSchema = z.object({
   query: z.string().optional(),
   batteryType: z.enum([batteryTypes.NEW, batteryTypes.USED, batteryTypes.SECOND_LIFE]).optional(),

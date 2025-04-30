@@ -49,19 +49,22 @@ export default function Footer() {
           <div className="mb-6 md:mb-0">
             <div className="flex items-center gap-2 mb-4">
               <motion.div
-                className="bg-white text-black p-1.5 relative"
+                className="relative"
                 style={{ 
-                  clipPath: "polygon(18% 0%, 82% 0%, 100% 18%, 100% 82%, 82% 100%, 18% 100%, 0% 82%, 0% 18%)",
                   width: "28px",
                   height: "28px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center"
                 }}
-                whileHover={{ rotate: 45 }}
-                transition={{ duration: 0.4 }}
+                whileHover={{ scale: 1.1 }}
+                transition={{ type: "spring", stiffness: 400, damping: 10 }}
               >
-                <i className="ri-cube-line text-xl"></i>
+                <img 
+                  src="/logo.png"
+                  alt="Rebatrix Logo"
+                  className="w-full h-full object-contain invert brightness-0"
+                />
               </motion.div>
               <span className="font-heading font-bold text-xl text-black bg-white px-2 rounded-md">rebatrix</span>
             </div>

@@ -9,7 +9,7 @@ const AuthContext = createContext<{
   user: User | null;
   isLoading: boolean;
   error: Error | null;
-  login: (username: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   register: (userData: Record<string, any>) => Promise<void>;
 } | null>(null);
@@ -62,34 +62,34 @@ export function AuthProvider({
   });
 
   // Log in a user
-  const login = async (username: string, password: string) => {
+  const login = async (email: string, password: string) => {
     try {
-      const response = await apiRequest("POST", "/api/login", { username, password });
-      
+      const response = await apiRequest("POST", "/api/login", { email, password });
+
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.message || "Login failed");
       }
-      
+
       const userData = await response.json();
-      
+
       // Store token
       if (userData.token) {
         localStorage.setItem("auth_token", userData.token);
-        
+
         // Refetch user data to update the context
         refetch();
-        
+
         toast({
           title: "Login successful",
-          description: `Welcome back, ${userData.username}`
+          description: `Welcome back, ${userData.email}` 
         });
       }
     } catch (error) {
       console.error("Login error:", error);
       toast({
         title: "Login failed",
-        description: error instanceof Error ? error.message : "Invalid username or password",
+        description: error instanceof Error ? error.message : "Invalid email or password", 
         variant: "destructive"
       });
       throw error;
@@ -100,12 +100,15 @@ export function AuthProvider({
   const register = async (userData: Record<string, any>) => {
     try {
       const response = await apiRequest("POST", "/api/users", userData);
-      
+
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.message || "Registration failed");
       }
-      
+
+      // After successful registration, login automatically
+      await login(userData.email, userData.password);
+
       toast({
         title: "Registration successful",
         description: "Your account has been created"
@@ -135,11 +138,11 @@ export function AuthProvider({
           "Content-Type": "application/json"
         }
       });
-      
+
       // Clear token and invalidate queries
       localStorage.removeItem("auth_token");
       queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-      
+
       toast({
         title: "Logged out",
         description: "You have been successfully logged out"
@@ -162,15 +165,15 @@ export function AuthProvider({
       window.fetch = async function(input, init) {
         init = init || {};
         init.headers = init.headers || {};
-        
+
         // Don't override if Authorization is already set
         if (!(init.headers as any).Authorization) {
           (init.headers as any).Authorization = `Bearer ${token}`;
         }
-        
+
         return originalFetch(input, init);
       };
-      
+
       return () => {
         window.fetch = originalFetch;
       };

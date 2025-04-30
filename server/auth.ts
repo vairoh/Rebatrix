@@ -28,7 +28,7 @@ export function isAuthenticated(req: Request, res: Response, next: NextFunction)
   if (!sessionId || !sessions.has(sessionId)) {
     return res.status(401).json({ message: "Unauthorized" });
   }
-  
+
   // Attach user ID to request for later use
   (req as any).userId = sessions.get(sessionId);
   next();
@@ -36,23 +36,52 @@ export function isAuthenticated(req: Request, res: Response, next: NextFunction)
 
 // Auth routes
 export function registerAuthRoutes(app: any) {
+  // Registration route (added)
+  app.post("/api/register", async (req: Request, res: Response) => {
+    try {
+      const { email, username, password } = req.body;
+
+      if (!email || !username || !password) {
+        return res.status(400).json({ message: "Email, username, and password are required" });
+      }
+
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(409).json({ message: "Email already in use" });
+      }
+
+      const existingUsername = await storage.getUserByUsername(username);
+      if (existingUsername) {
+        return res.status(409).json({ message: "Username already in use" });
+      }
+
+      const hashedPassword = await hashPassword(password);
+      const newUser = await storage.createUser({ email, username, password: hashedPassword });
+      return res.status(201).json({ message: "User created successfully" });
+    } catch (error) {
+      console.error("Registration error:", error);
+      return res.status(500).json({ message: "An error occurred during registration" });
+    }
+  });
+
+
   // Login route
   app.post("/api/login", async (req: Request, res: Response) => {
     try {
-      const { username, password } = req.body;
-      
-      if (!username || !password) {
-        return res.status(400).json({ message: "Username and password are required" });
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
       }
 
-      const user = await storage.getUserByUsername(username);
+      const user = await storage.getUserByEmail(email);
       if (!user) {
-        return res.status(401).json({ message: "Invalid username or password" });
+        return res.status(401).json({ message: "Invalid email or password" });
       }
 
       const passwordValid = await comparePasswords(password, user.password);
       if (!passwordValid) {
-        return res.status(401).json({ message: "Invalid username or password" });
+        return res.status(401).json({ message: "Invalid email or password" });
       }
 
       // Create a session
@@ -61,7 +90,7 @@ export function registerAuthRoutes(app: any) {
 
       // Don't send the password to the client
       const { password: _, ...userWithoutPassword } = user;
-      
+
       return res.status(200).json({
         ...userWithoutPassword,
         token: sessionId
@@ -80,17 +109,17 @@ export function registerAuthRoutes(app: any) {
     }
     return res.status(200).json({ message: "Logged out successfully" });
   });
-  
+
   // Get current user
   app.get("/api/me", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userId = (req as any).userId;
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Don't send the password to the client
       const { password: _, ...userWithoutPassword } = user;
       return res.json(userWithoutPassword);

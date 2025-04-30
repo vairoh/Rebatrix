@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function ListingCTA() {
+  const { user } = useAuth();
+  const [, setLocation] = useLocation();
   return (
     <section className="py-10 bg-black relative overflow-hidden">
       <div className="absolute inset-0 opacity-5">
@@ -48,7 +51,7 @@ export default function ListingCTA() {
             viewport={{ once: true }}
             transition={{ duration: 0.4, delay: 0.3 }}
           >
-            <Link href="/how-it-works">
+            <div onClick={() => !user ? setLocation("/login") : setLocation("/marketplace")}>
               <motion.div
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
@@ -57,7 +60,7 @@ export default function ListingCTA() {
                   <i className="ri-question-line mr-1.5"></i> Learn More
                 </Button>
               </motion.div>
-            </Link>
+            </div>
             <Link href="/list-battery">
               <motion.div
                 whileHover={{ scale: 1.03 }}

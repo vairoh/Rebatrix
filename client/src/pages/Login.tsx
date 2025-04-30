@@ -11,7 +11,7 @@ export default function Login() {
   const [, setLocation] = useLocation();
   const { login, user, isLoading: authLoading } = useAuth();
   const [formData, setFormData] = useState({
-    username: "",
+    email: "",
     password: ""
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -27,7 +27,7 @@ export default function Login() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
+
     // Clear error when user types
     if (formErrors[name]) {
       setFormErrors(prev => {
@@ -40,27 +40,35 @@ export default function Login() {
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
-    
-    if (!formData.username.trim()) errors.username = "Username is required";
+
+    if (!formData.email.trim()) errors.email = "Email is required";
     if (!formData.password) errors.password = "Password is required";
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     try {
       setIsLoading(true);
-      
+
       // Use auth hook for login
-      await login(formData.username, formData.password);
-      
+      try {
+        await login(formData.email, formData.password);
+      } catch (error) {
+        setFormErrors(prev => ({
+          ...prev,
+          password: "Invalid email or password"
+        }));
+        return;
+      }
+
       // Note: Redirect is handled in useEffect when user state changes
-      
+
     } catch (error) {
       // Errors are handled by the login function itself with toast
       console.error("Login submission error:", error);
@@ -72,36 +80,36 @@ export default function Login() {
   return (
     <div className="min-h-[calc(100vh-14rem)] flex items-center justify-center bg-white px-4">
       <motion.div 
-        className="max-w-md w-full bg-white p-8 border border-black rounded-lg"
+        className="w-[380px] bg-white p-5 border border-black rounded-lg"
         variants={fadeIn}
         initial="hidden"
         animate="visible"
       >
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold font-heading mb-2">Login</h1>
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold font-heading mb-1.5">Login</h1>
           <p className="text-sm text-black/60">
             Sign in to access your rebatrix account
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label 
-              htmlFor="username" 
+              htmlFor="email" 
               className="block text-sm font-medium text-black mb-2"
             >
-              Username
+              Email
             </label>
             <Input
-              id="username"
-              name="username"
-              value={formData.username}
+              id="email"
+              name="email"
+              value={formData.email}
               onChange={handleInputChange}
               required
-              className={`w-full p-2 rounded-md border ${formErrors.username ? 'border-red-500' : 'border-black'}`}
-              placeholder="yourusername"
+              className={`w-full p-2 rounded-xl border ${formErrors.email ? 'border-red-500' : 'border-black'}`}
+              placeholder="youremail@example.com"
             />
-            {formErrors.username && <p className="text-xs text-red-500 mt-1">{formErrors.username}</p>}
+            {formErrors.email && <p className="text-xs text-red-500 mt-1">{formErrors.email}</p>}
           </div>
 
           <div>
@@ -123,7 +131,7 @@ export default function Login() {
               value={formData.password}
               onChange={handleInputChange}
               required
-              className={`w-full p-2 rounded-md border ${formErrors.password ? 'border-red-500' : 'border-black'}`}
+              className={`w-full p-2 rounded-xl border ${formErrors.password ? 'border-red-500' : 'border-black'}`}
               placeholder="••••••••"
             />
             {formErrors.password && <p className="text-xs text-red-500 mt-1">{formErrors.password}</p>}

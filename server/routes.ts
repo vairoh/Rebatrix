@@ -8,7 +8,7 @@ import { hashPassword, registerAuthRoutes } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // All routes are prefixed with /api
-  
+
   // Register authentication routes
   registerAuthRoutes(app);
 
@@ -16,21 +16,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/users", async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
-      const existingUser = await storage.getUserByUsername(userData.username);
-      
+      // Check if email already exists
+      const existingUser = await storage.getUserByEmail(userData.email);
       if (existingUser) {
-        return res.status(409).json({ message: "Username already exists" });
+        return res.status(409).json({ message: "Email already exists" });
       }
-      
+
       // Hash the password before storing
       const hashedPassword = await hashPassword(userData.password);
       const userWithHashedPassword = {
         ...userData,
         password: hashedPassword
       };
-      
+
       const user = await storage.createUser(userWithHashedPassword);
-      
+
       // Don't return the password in the response
       const { password, ...userWithoutPassword } = user;
       return res.status(201).json(userWithoutPassword);
@@ -49,12 +49,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isNaN(userId)) {
         return res.status(400).json({ message: "Invalid user ID" });
       }
-      
+
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Don't return password
       const { password, ...userWithoutPassword } = user;
       return res.json(userWithoutPassword);
@@ -66,17 +66,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Battery routes
   app.post("/api/batteries", async (req, res) => {
     try {
-      const batteryData = insertBatterySchema.parse(req.body);
-      
+      const batteryData = {
+        ...insertBatterySchema.parse(req.body),
+        description: req.body.description || "No description provided"
+      };
+
       // Check if user exists
       const user = await storage.getUser(batteryData.userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       const battery = await storage.createBattery(batteryData);
+      console.log("[Battery Creation]", battery);
       return res.status(201).json(battery);
     } catch (error) {
+      console.error("[Battery Creation Error]", error);
       if (error instanceof ZodError) {
         return res.status(400).json({ message: fromZodError(error).message });
       }
@@ -88,11 +93,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
       const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
-      
+
       if (isNaN(limit) || isNaN(offset)) {
         return res.status(400).json({ message: "Invalid limit or offset" });
       }
-      
+
       const batteries = await storage.getBatteries(limit, offset);
       return res.json(batteries);
     } catch (error) {
@@ -106,12 +111,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isNaN(batteryId)) {
         return res.status(400).json({ message: "Invalid battery ID" });
       }
-      
+
       const battery = await storage.getBattery(batteryId);
       if (!battery) {
         return res.status(404).json({ message: "Battery not found" });
       }
-      
+
       return res.json(battery);
     } catch (error) {
       return res.status(500).json({ message: "Failed to get battery" });
@@ -124,16 +129,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isNaN(batteryId)) {
         return res.status(400).json({ message: "Invalid battery ID" });
       }
-      
+
       // Check if battery exists
       const existingBattery = await storage.getBattery(batteryId);
       if (!existingBattery) {
         return res.status(404).json({ message: "Battery not found" });
       }
-      
+
       // Partial validation for update
       const batteryData = insertBatterySchema.partial().parse(req.body);
-      
+
       const updatedBattery = await storage.updateBattery(batteryId, batteryData);
       return res.json(updatedBattery);
     } catch (error) {
@@ -150,13 +155,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isNaN(batteryId)) {
         return res.status(400).json({ message: "Invalid battery ID" });
       }
-      
+
       // Check if battery exists
       const existingBattery = await storage.getBattery(batteryId);
       if (!existingBattery) {
         return res.status(404).json({ message: "Battery not found" });
       }
-      
+
       const success = await storage.deleteBattery(batteryId);
       if (success) {
         return res.status(204).send();
@@ -171,6 +176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Search route
   app.get("/api/search", async (req, res) => {
     try {
+      console.log("[Search Request]", req.query);
       // Extract search parameters
       const searchParams = {
         query: req.query.q as string | undefined,
@@ -185,7 +191,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         listingType: req.query.listingType as string | undefined,
         manufacturer: req.query.manufacturer as string | undefined
       };
-      
+
       // Validate search parameters
       const validParams = batterySearchSchema.safeParse(searchParams);
       if (!validParams.success) {
@@ -194,8 +200,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           errors: fromZodError(validParams.error).message 
         });
       }
-      
+
       const results = await storage.searchBatteries(validParams.data);
+      console.log("[Search Results]", {
+        params: validParams.data,
+        resultsCount: results.length,
+        results
+      });
       return res.json(results);
     } catch (error) {
       return res.status(500).json({ message: "Search failed" });
@@ -220,7 +231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isNaN(limit)) {
         return res.status(400).json({ message: "Invalid limit" });
       }
-      
+
       const batteries = await storage.getFeaturedBatteries(limit);
       return res.json(batteries);
     } catch (error) {
@@ -235,13 +246,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isNaN(userId)) {
         return res.status(400).json({ message: "Invalid user ID" });
       }
-      
+
       // Check if user exists
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       const batteries = await storage.getUserBatteries(userId);
       return res.json(batteries);
     } catch (error) {

@@ -28,6 +28,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { countries, getStatesForCountry } from "@/lib/countries";
 
 export default function ListBattery() {
   const [, navigate] = useLocation();
@@ -35,7 +36,7 @@ export default function ListBattery() {
   const { user, isLoading } = useAuth();
   const [listingType, setListingType] = useState("sell");
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  
+
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!isLoading && !user) {
@@ -47,7 +48,7 @@ export default function ListBattery() {
       navigate("/login");
     }
   }, [user, isLoading, navigate, toast]);
-  
+
   // Get initial listing type from URL query param if present
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -60,7 +61,7 @@ export default function ListBattery() {
   // Set SEO meta tags
   useEffect(() => {
     document.title = "List Your Battery | Rebatrix";
-    
+
     // Update meta description
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
@@ -75,7 +76,6 @@ export default function ListBattery() {
   const formSchema = z.object({
     userId: z.number().default(1), // Default to 1 for demo purposes
     title: z.string().min(5, "Title must be at least 5 characters").max(100, "Title must be less than 100 characters"),
-    description: z.string().min(20, "Description must be at least 20 characters"),
     price: z.string().min(1, "Price is required"),
     location: z.string().min(2, "Location is required"),
     country: z.string().min(2, "Country is required"),
@@ -190,7 +190,10 @@ export default function ListBattery() {
         title: "Battery listed successfully!",
         description: "Your battery has been added to the marketplace.",
       });
-      navigate(`/battery/${data.id}`);
+      // Force a small delay before navigation to ensure state updates
+      setTimeout(() => {
+        window.location.href = "/marketplace";
+      }, 500);
     },
     onError: (error) => {
       toast({
@@ -201,8 +204,22 @@ export default function ListBattery() {
     },
   });
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    mutation.mutate(data as InsertBattery);
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    console.log("Form submission data:", data);
+    try {
+      const result = await mutation.mutateAsync({
+        ...data,
+        description: "No description provided" // Add default description
+      } as InsertBattery);
+      console.log("Mutation result:", result);
+    } catch (error) {
+      console.error("Mutation error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit battery listing. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -276,26 +293,7 @@ export default function ListBattery() {
                         )}
                       />
 
-                      <FormField
-                        control={form.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Description*</FormLabel>
-                            <FormControl>
-                              <Textarea 
-                                placeholder="Describe your battery, its condition, use case, and any special features..." 
-                                className="min-h-[120px]" 
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormDescription>
-                              Provide detailed information about your battery
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FormField
@@ -304,7 +302,9 @@ export default function ListBattery() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>
-                                {listingType === "rent" ? "Price per Month (€)*" : "Price (€)*"}
+                                {listingType === "rent" 
+                                  ? `Price per ${form.getValues("rentalPeriod")?.replace("ly", "") || "Rental Period"} (€)*` 
+                                  : "Price (€)*"}
                               </FormLabel>
                               <FormControl>
                                 <Input type="text" placeholder="e.g. 5000" {...field} />
@@ -331,11 +331,9 @@ export default function ListBattery() {
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    <SelectItem value="daily">Daily</SelectItem>
-                                    <SelectItem value="weekly">Weekly</SelectItem>
                                     <SelectItem value="monthly">Monthly</SelectItem>
+                                    <SelectItem value="quarterly">Quarterly</SelectItem>
                                     <SelectItem value="yearly">Yearly</SelectItem>
-                                    <SelectItem value="custom">Custom</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -348,13 +346,31 @@ export default function ListBattery() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FormField
                           control={form.control}
-                          name="location"
+                          name="country"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Location (City)*</FormLabel>
-                              <FormControl>
-                                <Input placeholder="e.g. Berlin" {...field} />
-                              </FormControl>
+                              <FormLabel>Country*</FormLabel>
+                              <Select 
+                                value={field.value} 
+                                onValueChange={(value) => {
+                                  field.onChange(value);
+                                  // Reset location when country changes
+                                  form.setValue('location', '');
+                                }}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select country" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {countries.map((country) => (
+                                    <SelectItem key={country.code} value={country.name}>
+                                      {country.flag} {country.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -362,13 +378,28 @@ export default function ListBattery() {
 
                         <FormField
                           control={form.control}
-                          name="country"
+                          name="location"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Country*</FormLabel>
-                              <FormControl>
-                                <Input placeholder="e.g. Germany" {...field} />
-                              </FormControl>
+                              <FormLabel>State*</FormLabel>
+                              <Select 
+                                value={field.value} 
+                                onValueChange={field.onChange}
+                                disabled={!form.getValues('country')}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder={form.getValues('country') ? "Select state" : "Select country first"} />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {getStatesForCountry(form.getValues('country')).map((state) => (
+                                    <SelectItem key={state} value={state}>
+                                      {state}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -684,7 +715,7 @@ export default function ListBattery() {
                   {/* Additional Information */}
                   <div>
                     <h2 className="text-lg font-semibold mb-4">Additional Information</h2>
-                    
+
                     {/* Additional Specs */}
                     <div className="mb-6">
                       <FormLabel>Additional Specifications</FormLabel>
@@ -739,52 +770,7 @@ export default function ListBattery() {
                       </div>
                     </div>
 
-                    {/* Image Upload */}
-                    <div>
-                      <FormLabel>Battery Images</FormLabel>
-                      <div className="mt-2 border-2 border-dashed border-black rounded-md p-6 text-center">
-                        <div className="space-y-2">
-                          <div className="flex justify-center">
-                            <i className="ri-image-add-line text-4xl text-black"></i>
-                          </div>
-                          <div className="text-sm text-black">
-                            <p>Drag and drop images here, or click to upload</p>
-                            <p className="text-xs">Supported formats: JPG, PNG, WEBP. Max 5MB per image.</p>
-                          </div>
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            className="mt-2 border-black text-black hover:bg-gray-100"
-                            onClick={handleImageUpload}
-                          >
-                            Upload Images
-                          </Button>
-                        </div>
-                      </div>
-                      {uploadedImages.length > 0 && (
-                        <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
-                          {uploadedImages.map((img, index) => (
-                            <div 
-                              key={index} 
-                              className="relative aspect-square bg-white border border-black rounded flex items-center justify-center"
-                            >
-                              <i className="ri-image-line text-3xl text-black"></i>
-                              <button
-                                type="button"
-                                className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm text-black hover:bg-gray-200"
-                                onClick={() => {
-                                  const newImages = uploadedImages.filter((_, i) => i !== index);
-                                  setUploadedImages(newImages);
-                                  form.setValue("images", newImages);
-                                }}
-                              >
-                                <i className="ri-close-line"></i>
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+
                   </div>
 
                   <Separator />

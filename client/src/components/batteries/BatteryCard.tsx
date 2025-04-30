@@ -24,7 +24,7 @@ export function BatteryCard({ battery }: BatteryCardProps) {
         description: "Please sign in to view battery details",
         variant: "default",
       });
-      
+
       // Redirect to login page
       setLocation("/login");
       return false;
@@ -34,12 +34,22 @@ export function BatteryCard({ battery }: BatteryCardProps) {
 
   const formatPrice = (price: string, listingType: string) => {
     const numPrice = Number(price);
-    
+
     if (listingType === 'rent' || listingType === 'lend') {
       return `€${numPrice.toLocaleString()}/mo`;
     }
-    
+
     return `€${numPrice.toLocaleString()}`;
+  };
+
+  const getBadgeText = (listingType: string, batteryType: string) => {
+    if (listingType === 'rent' || listingType === 'lend') {
+      return 'Rental';
+    } else if (listingType === 'sell') {
+      return 'For Sale';
+    } else {
+      return batteryType === 'new' ? 'New' : battery.batteryType === 'used' ? 'Used' : 'Second-Life';
+    }
   };
 
   return (
@@ -52,10 +62,7 @@ export function BatteryCard({ battery }: BatteryCardProps) {
       <div className="p-3 border-b border-black">
         <div className="flex justify-between">
           <Badge className="px-2 py-0.5 text-xs font-medium bg-black text-white rounded-full">
-            {battery.listingType === 'rent' || battery.listingType === 'lend' 
-              ? battery.listingType === 'rent' ? 'Rental' : 'For Lending'
-              : battery.batteryType === 'new' ? 'New' : 
-                battery.batteryType === 'used' ? 'Used' : 'Second-Life'}
+            {getBadgeText(battery.listingType, battery.batteryType)}
           </Badge>
           <motion.button 
             className="p-1 rounded-full bg-white text-black border border-black hover:bg-black hover:text-white"
@@ -68,7 +75,7 @@ export function BatteryCard({ battery }: BatteryCardProps) {
           </motion.button>
         </div>
       </div>
-      
+
       <div className="p-4">
         <div className="flex justify-between items-start mb-1">
           <h3 className="font-heading font-semibold text-base line-clamp-2 text-black">{battery.title}</h3>
@@ -76,11 +83,11 @@ export function BatteryCard({ battery }: BatteryCardProps) {
             {formatPrice(battery.price, battery.listingType)}
           </span>
         </div>
-        
+
         <div className="mb-2">
           <span className="text-xs text-black">{battery.location}, {battery.country}</span>
         </div>
-        
+
         <div className="flex flex-wrap gap-1 mb-3">
           <motion.div
             initial={{ opacity: 0, y: 5 }}
@@ -110,7 +117,7 @@ export function BatteryCard({ battery }: BatteryCardProps) {
             </Badge>
           </motion.div>
         </div>
-        
+
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <BatteryLevel percentage={battery.healthPercentage || 100} />
@@ -118,7 +125,7 @@ export function BatteryCard({ battery }: BatteryCardProps) {
               {battery.healthPercentage || 100}% Health
             </span>
           </div>
-          
+
           <Link href={`/battery/${battery.id}`} onClick={handleBatteryDetails}>
             <motion.div
               className="text-black hover:text-black font-medium flex items-center text-xs cursor-pointer underline-offset-2 hover:underline"

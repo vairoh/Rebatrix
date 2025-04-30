@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { batteryTypes, batteryCategories, listingTypes } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
+import { countries, getStatesForCountry } from "@/lib/countries";
 
 export default function Marketplace() {
   const { user } = useAuth();
@@ -54,7 +55,16 @@ export default function Marketplace() {
   const queryString = buildQueryString();
   
   const { data: batteries, isLoading, error } = useQuery<Battery[]>({
-    queryKey: [`/api/search?${queryString}`],
+    queryKey: ['/api/search', queryString],
+    queryFn: async () => {
+      const response = await fetch(`/api/search?${queryString}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch batteries');
+      }
+      const data = await response.json();
+      console.log("Search results:", data);
+      return data;
+    },
     enabled: true,
   });
 
@@ -295,11 +305,50 @@ export default function Marketplace() {
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Country
                 </label>
-                <Input
-                  placeholder="Country"
-                  value={searchParams.country || ""}
-                  onChange={handleCountryChange}
-                />
+                <Select 
+                  value={searchParams.country}
+                  onValueChange={(value) => {
+                    setSearchParams(prev => ({ 
+                      ...prev, 
+                      country: value,
+                      location: undefined // Reset location when country changes
+                    }));
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countries.map((country) => (
+                      <SelectItem key={country.code} value={country.name}>
+                        {country.flag} {country.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* State/Location filter */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  State/Region
+                </label>
+                <Select 
+                  value={searchParams.location}
+                  onValueChange={(value) => setSearchParams(prev => ({ ...prev, location: value }))}
+                  disabled={!searchParams.country}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={searchParams.country ? "Select state" : "Select country first"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getStatesForCountry(searchParams.country || '').map((state) => (
+                      <SelectItem key={state} value={state}>
+                        {state}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Manufacturer filter */}

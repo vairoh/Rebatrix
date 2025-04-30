@@ -30,19 +30,22 @@ export default function Header() {
             <div className="flex-shrink-0">
               <Link href="/" className="flex items-center">
                 <motion.div
-                  className="mr-2 bg-black text-white p-1.5 relative"
+                  className="mr-2 relative"
                   style={{ 
-                    clipPath: "polygon(18% 0%, 82% 0%, 100% 18%, 100% 82%, 82% 100%, 18% 100%, 0% 82%, 0% 18%)",
                     width: "28px",
                     height: "28px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center"
                   }}
-                  whileHover={{ scale: 1.1, rotate: 10 }}
+                  whileHover={{ scale: 1.1 }}
                   transition={{ type: "spring", stiffness: 400, damping: 10 }}
                 >
-                  <i className="ri-cube-line text-xl"></i>
+                  <img 
+                    src="/logo.png"
+                    alt="Rebatrix Logo"
+                    className="w-full h-full object-contain"
+                  />
                 </motion.div>
                 <span className="font-heading font-bold text-xl text-black">rebatrix</span>
               </Link>
@@ -113,7 +116,7 @@ export default function Header() {
                           transition={{ duration: 0.1 }}
                           className="max-w-[100px] truncate"
                         >
-                          {user.username}
+                          {user.email}
                         </motion.span>
                       </button>
                     </motion.div>
