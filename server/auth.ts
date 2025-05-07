@@ -41,10 +41,10 @@ export function registerAuthRoutes(app: any) {
   // Registration route (added)
   app.post("/api/register", async (req: Request, res: Response) => {
     try {
-      const { email, username, password } = req.body;
+      const { email, password, phone, location, country } = req.body;
 
-      if (!email || !username || !password) {
-        return res.status(400).json({ message: "Email, username, and password are required" });
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
       }
 
       const existingUser = await storage.getUserByEmail(email);
@@ -52,14 +52,31 @@ export function registerAuthRoutes(app: any) {
         return res.status(409).json({ message: "Email already in use" });
       }
 
-      const existingUsername = await storage.getUserByUsername(username);
-      if (existingUsername) {
-        return res.status(409).json({ message: "Username already in use" });
-      }
-
       const hashedPassword = await hashPassword(password);
-      const newUser = await storage.createUser({ email, username, password: hashedPassword });
-      return res.status(201).json({ message: "User created successfully" });
+      const newUser = await storage.createUser({ 
+        email, 
+        password: hashedPassword, 
+        phone, 
+        location, 
+        country 
+      });
+      
+
+      // Create session for the new user
+      const sessionId = randomBytes(32).toString("hex");
+      sessions.set(sessionId, newUser.id);
+
+      // Track the login
+      await storage.trackLogin(newUser.id, newUser.email);
+
+      // Don't send the password back
+      const { password: _, ...userWithoutPassword } = newUser;
+
+      return res.status(201).json({
+        ...userWithoutPassword,
+        token: sessionId
+      });
+
     } catch (error) {
       console.error("Registration error:", error);
       return res.status(500).json({ message: "An error occurred during registration" });

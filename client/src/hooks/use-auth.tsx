@@ -99,7 +99,7 @@ export function AuthProvider({
   // Register a new user
   const register = async (userData: Record<string, any>) => {
     try {
-      const response = await apiRequest("POST", "/api/users", userData);
+      const response = await apiRequest("POST", "/api/register", userData);
 
       if (!response.ok) {
         const data = await response.json();
