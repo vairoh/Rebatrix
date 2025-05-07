@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import fs from "fs/promises";
 import path from "path";
-import { users, type User, type InsertUser, type Battery, type InsertBattery, type BatterySearch, batterys } from "@shared/schema";
+import { users, type User, type InsertUser, type Battery, type InsertBattery, type BatterySearch, batteries } from "@shared/schema";
 import { db } from "./db"; // 
 import { eq } from "drizzle-orm";
 import { desc } from "drizzle-orm";
@@ -88,7 +88,7 @@ class Storage {
   // Battery Operations
   async createBattery(insertBattery: InsertBattery): Promise<Battery> {
     const [battery] = await db
-      .insert(batterys)
+      .insert(batteries)
       .values({
         ...insertBattery,
         createdAt: new Date(),
@@ -145,8 +145,8 @@ class Storage {
   
     const result = await db
       .select()
-      .from(batterys)
-      .where(eq(batterys.id, numericId))
+      .from(batteries)
+      .where(eq(batteries.id, numericId))
       .limit(1);
   
     return result[0];
@@ -156,12 +156,12 @@ class Storage {
     const numericId = typeof id === "string" ? parseInt(id, 10) : id;
   
     const [battery] = await db
-      .update(batterys)
+      .update(batteries)
       .set({
         ...updatedBattery,
         updatedAt: new Date()
       })
-      .where(eq(batterys.id, numericId))
+      .where(eq(batteries.id, numericId))
       .returning();
   
     return battery ?? undefined;
@@ -170,8 +170,8 @@ class Storage {
   async getBatteries(limit = 20, offset = 0): Promise<Battery[]> {
     const result = await db
       .select()
-      .from(batterys)
-      .orderBy(desc(batterys.createdAt))
+      .from(batteries)
+      .orderBy(desc(batteries.createdAt))
       .limit(limit)
       .offset(offset);
   
@@ -260,9 +260,9 @@ class Storage {
   async getBatteriesByCategory(category: string): Promise<Battery[]> {
     const result = await db
       .select()
-      .from(batterys)
-      .where(eq(batterys.category, category))
-      .orderBy(desc(batterys.createdAt));
+      .from(batteries)
+      .where(eq(batteries.category, category))
+      .orderBy(desc(batteries.createdAt));
   
     return result;
   }
@@ -270,8 +270,8 @@ class Storage {
   async getFeaturedBatteries(limit = 4): Promise<Battery[]> {
     const result = await db
       .select()
-      .from(batterys)
-      .orderBy(desc(batterys.createdAt))
+      .from(batteries)
+      .orderBy(desc(batteries.createdAt))
       .limit(limit);
   
     return result;
@@ -281,9 +281,9 @@ class Storage {
   async getUserBatteries(userId: number): Promise<Battery[]> {
     const result = await db
       .select()
-      .from(batterys)
-      .where(eq(batterys.userId, userId))
-      .orderBy(desc(batterys.createdAt));
+      .from(batteries)
+      .where(eq(batteries.userId, userId))
+      .orderBy(desc(batteries.createdAt));
   
     return result;
   }

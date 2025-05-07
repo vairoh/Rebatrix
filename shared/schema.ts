@@ -34,7 +34,7 @@ export const listingTypes = {
   RENT: "rent",
 } as const;
 
-export const batterys = pgTable("batteries", {
+export const batteries = pgTable("batteries", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   title: text("title").notNull(),
@@ -69,7 +69,7 @@ export const batterys = pgTable("batteries", {
 export const inquiries = pgTable("inquiries", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
-  batteryId: integer("battery_id").notNull().references(() => batterys.id),
+  batteryId: integer("battery_id").notNull().references(() => batteries.id),
   message: text("message").notNull(),
   contactEmail: text("contact_email"),
   status: text("status").default("new"),
@@ -85,7 +85,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   country: true,
 });
 
-export const insertBatterySchema = createInsertSchema(batterys)
+export const insertBatterySchema = createInsertSchema(batteries)
   .omit({
     id: true,
     createdAt: true,
@@ -99,7 +99,7 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
 export type InsertBattery = z.infer<typeof insertBatterySchema>;
-export type Battery = typeof batterys.$inferSelect;
+export type Battery = typeof batteries.$inferSelect;
 
 export type Inquiry = typeof inquiries.$inferSelect;
 export type InsertInquiry = typeof inquiries.$inferInsert;
