@@ -66,6 +66,17 @@ export const batterys = pgTable("batteries", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const inquiries = pgTable("inquiries", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  batteryId: integer("battery_id").notNull().references(() => batterys.id),
+  message: text("message").notNull(),
+  contactEmail: text("contact_email"),
+  status: text("status").default("new"),
+  timestamp: timestamp("timestamp").defaultNow()
+});
+
+
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   password: true,
@@ -89,6 +100,10 @@ export type User = typeof users.$inferSelect;
 
 export type InsertBattery = z.infer<typeof insertBatterySchema>;
 export type Battery = typeof batterys.$inferSelect;
+
+export type Inquiry = typeof inquiries.$inferSelect;
+export type InsertInquiry = typeof inquiries.$inferInsert;
+
 
 export const batterySearchSchema = z.object({
   query: z.string().optional(),

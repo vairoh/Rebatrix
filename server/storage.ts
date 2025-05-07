@@ -2,6 +2,10 @@ import { randomUUID } from "crypto";
 import fs from "fs/promises";
 import path from "path";
 import { users, type User, type InsertUser, type Battery, type InsertBattery, type BatterySearch, batterys } from "@shared/schema";
+import { db } from "./db"; // 
+import { eq } from "drizzle-orm";
+import { desc } from "drizzle-orm";
+
 
 const DB_FILE = path.join(process.cwd(), "db.json");
 
@@ -48,39 +52,50 @@ class Storage {
 
   // User Operations
   async getUser(id: number): Promise<User | undefined> {
-    return this.db.users.find(u => u.id === id);
+    const result = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, id))
+      .limit(1);
+  
+    return result[0];
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    return this.db.users.find(user => user.email === email);
+    const result = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+
+    return result[0];
   }
 
-  async createUser(userData: Omit<InsertUser, "id" | "createdAt">): Promise<User> {
-    const user: User = {
-      ...userData,
-      id: this.db.nextUserId++,
-      createdAt: new Date().toISOString(),
-      username: userData.username
-    };
 
-    this.db.users.push(user);
-    await this.saveDB();
+  async createUser(userData: Omit<InsertUser, "id" | "createdAt">): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values({
+        ...userData,
+        createdAt: new Date()
+      })
+      .returning();
+  
     return user;
   }
 
 
   // Battery Operations
   async createBattery(insertBattery: InsertBattery): Promise<Battery> {
-    const battery: Battery = {
-      ...insertBattery,
-      id: this.db.nextBatteryId++,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      userId: insertBattery.userId
-    };
-
-    this.db.batteries.push(battery);
-    await this.saveDB();
+    const [battery] = await db
+      .insert(batterys)
+      .values({
+        ...insertBattery,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+  
     return battery;
   }
   
@@ -126,53 +141,41 @@ class Storage {
   }
 
   async getBattery(id: number | string): Promise<Battery | undefined> {
-    const batteriesData = await this.getBatteries(100, 0);
-    // Handle both string and number IDs
-    const battery = batteriesData.find(b => {
-      if (typeof id === 'number') {
-        console.log("Numeric comparison result:", b.id === id ? "Found" : "Not found");
-        return b.id === id;
-      } else {
-        // Convert both to strings for comparison to handle string IDs
-        console.log("String comparison result:", String(b.id) === id ? "Found" : "Not found");
-        return String(b.id) === id;
-      }
-    });
-    return battery;
+    const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+  
+    const result = await db
+      .select()
+      .from(batterys)
+      .where(eq(batterys.id, numericId))
+      .limit(1);
+  
+    return result[0];
   }
 
   async updateBattery(id: number | string, updatedBattery: Partial<Battery>): Promise<Battery | undefined> {
-    // Find the battery to update
-    const batteryToUpdate = await this.getBattery(id);
-    if (!batteryToUpdate) {
-      return undefined;
-    }
-
-    // Update the battery data
-    const updatedBatteryData = {
-      ...batteryToUpdate,
-      ...updatedBattery,
-      // Preserve the original ID and user ID
-      id: batteryToUpdate.id,
-      userId: batteryToUpdate.userId,
-      updatedAt: new Date().toISOString()
-    };
-
-    // Replace the battery in the array
-    const index = this.db.batteries.findIndex(b => b.id === batteryToUpdate.id);
-    if (index !== -1) {
-      this.db.batteries[index] = updatedBatteryData;
-      await this.saveDB();
-      return updatedBatteryData;
-    }
-
-    return undefined;
+    const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+  
+    const [battery] = await db
+      .update(batterys)
+      .set({
+        ...updatedBattery,
+        updatedAt: new Date()
+      })
+      .where(eq(batterys.id, numericId))
+      .returning();
+  
+    return battery ?? undefined;
   }
 
   async getBatteries(limit = 20, offset = 0): Promise<Battery[]> {
-    return this.db.batteries
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(offset, offset + limit);
+    const result = await db
+      .select()
+      .from(batterys)
+      .orderBy(desc(batterys.createdAt))
+      .limit(limit)
+      .offset(offset);
+  
+    return result;
   }
 
   async deleteBattery(id: number): Promise<boolean> {
@@ -255,22 +258,34 @@ class Storage {
 
   // Category Operations
   async getBatteriesByCategory(category: string): Promise<Battery[]> {
-    return this.db.batteries
-      .filter((battery) => battery.category === category)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const result = await db
+      .select()
+      .from(batterys)
+      .where(eq(batterys.category, category))
+      .orderBy(desc(batterys.createdAt));
+  
+    return result;
   }
 
   async getFeaturedBatteries(limit = 4): Promise<Battery[]> {
-    return this.db.batteries
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, limit);
+    const result = await db
+      .select()
+      .from(batterys)
+      .orderBy(desc(batterys.createdAt))
+      .limit(limit);
+  
+    return result;
   }
 
   // User-specific Operations
   async getUserBatteries(userId: number): Promise<Battery[]> {
-    return this.db.batteries
-      .filter((battery) => battery.userId === userId)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const result = await db
+      .select()
+      .from(batterys)
+      .where(eq(batterys.userId, userId))
+      .orderBy(desc(batterys.createdAt));
+  
+    return result;
   }
 
   // Debug methods
