@@ -201,8 +201,8 @@ export default function Signup() {
                     <SelectTrigger className={`border rounded-xl ${formErrors.country ? 'border-red-500' : 'border-black'}`}>
                       <SelectValue placeholder="Select country" />
                     </SelectTrigger>
-                    <SelectContent position="popper" align="start" side="bottom" sideOffset={5} className="max-h-[300px] rounded-xl w-[--radix-select-trigger-width] overflow-y-auto z-[999]">
-                      <div className="sticky top-0 bg-white p-2 border-b">
+                    <SelectContent position="popper" align="start" side="bottom" sideOffset={5} className="max-h-[300px] w-[--radix-select-trigger-width] rounded-xl bg-white shadow-lg overflow-y-auto z-[999]">
+                    <div className="sticky top-0 bg-white z-10 p-2 border-b">
                         <Input
                           type="text"
                           placeholder="Search country..."
