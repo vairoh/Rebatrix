@@ -67,6 +67,7 @@ export const batteries = pgTable("batteries", {
   certifications: text("certifications").array(),
   listingType: text("listing_type").notNull(),
   availability: boolean("availability").default(true),
+  isFeatured: boolean("is_featured").default(false),
   rentalPeriod: text("rental_period"),
   images: text("images").array(),
   additionalSpecs: json("additional_specs"),
