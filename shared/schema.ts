@@ -122,7 +122,7 @@ export const batterySearchSchema = z.object({
   maxPrice: z.number().optional(),
   location: z.string().optional(),
   country: z.string().optional(),
-  listingType: z.enum([listingTypes.BUY, listingTypes.SELL, listingTypes.RENT, listingTypes.LEND]).optional(),
+  listingType: z.enum([listingTypes.BUY, listingTypes.SELL, listingTypes.RENT]).optional(),
   manufacturer: z.string().optional(),
 });
 
