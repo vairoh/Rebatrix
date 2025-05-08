@@ -363,6 +363,7 @@ export default function ListBattery() {
                                   align="start"
                                   side="bottom"
                                   sideOffset={5}
+                                  avoidCollisions={false}
                                   className="max-h-[300px] w-[--radix-select-trigger-width] rounded-xl bg-white shadow-lg overflow-y-auto z-[999]"
                                 >
                                   {/* sticky search bar */}
@@ -375,25 +376,26 @@ export default function ListBattery() {
                                       className="rounded-xl"
                                     />
                                   </div>
+                                  <div className="max-h-[300px] overflow-y-auto">
+                                    {getAllCountries()
+                                      .filter((c) =>
+                                        c.name.toLowerCase().includes(searchCountry.toLowerCase())
+                                      )
+                                      .map((country) => (
+                                        <SelectItem key={country.code} value={country.name}>
+                                          <span className="mr-2">{country.flag}</span>
+                                          {country.name}
+                                        </SelectItem>
+                                      ))}
+                                  </SelectContent>
+                                  {/* —— end patched content —— */}
 
-                                  {getAllCountries()
-                                    .filter((c) =>
-                                      c.name.toLowerCase().includes(searchCountry.toLowerCase())
-                                    )
-                                    .map((country) => (
-                                      <SelectItem key={country.code} value={country.name}>
-                                        <span className="mr-2">{country.flag}</span>
-                                        {country.name}
-                                      </SelectItem>
-                                    ))}
-                                </SelectContent>
-                                {/* —— end patched content —— */}
-
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                      </div>
 
                         <FormField
                           control={form.control}
