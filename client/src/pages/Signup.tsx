@@ -211,8 +211,8 @@ export default function Signup() {
                           className="rounded-xl"
                         />
                       </div>
-                      {getAllCountries
-                        .filter(country => 
+                      {getAllCountries()
+                        .filter(country =>
                           country.name.toLowerCase().includes(searchCountry.toLowerCase())
                         )
                         .map((country) => (
