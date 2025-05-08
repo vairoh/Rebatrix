@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
-import { getAllCountries } from "@/lib/country-utils";
+import { getAllCountries, getStatesForCountry } from "@/lib/country-utils";
 
 export default function Signup() {
   const [, setLocation] = useLocation();
