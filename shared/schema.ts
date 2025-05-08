@@ -73,6 +73,7 @@ export const batteries = pgTable("batteries", {
   additionalSpecs: json("additional_specs"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  is_featured: boolean("is_featured").default(false),
 });
 
 export const inquiries = pgTable("inquiries", {

@@ -8,6 +8,13 @@
       "when": 1746697766461,
       "tag": "0000_sharp_betty_ross",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1746710567805,
+      "tag": "0001_previous_cable",
+      "breakpoints": true
     }
   ]
 }

@@ -132,6 +132,7 @@ class Storage {
     return db
       .select()
       .from(batteries)
+      .where(eq(batteries.is_featured, true))
       .orderBy(desc(batteries.createdAt))
       .limit(limit);
   }
