@@ -28,11 +28,11 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { countries, getStatesForCountry } from "@/lib/countries";
+import { getAllCountries, getStatesForCountry } from "@/lib/country-utils";
 
 export default function ListBattery() {
   const [, navigate] = useLocation();
-  const { toast } = useToast();
+  const [searchCountry, setSearchCountry] = useState("");  const { toast } = useToast();
   const { user, isLoading } = useAuth();
   const [listingType, setListingType] = useState("sell");
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
@@ -348,7 +348,6 @@ export default function ListBattery() {
                                 value={field.value} 
                                 onValueChange={(value) => {
                                   field.onChange(value);
-                                  // Reset location when country changes
                                   form.setValue('location', '');
                                 }}
                               >
@@ -357,13 +356,39 @@ export default function ListBattery() {
                                     <SelectValue placeholder="Select country" />
                                   </SelectTrigger>
                                 </FormControl>
-                                <SelectContent>
-                                  {countries.map((country) => (
-                                    <SelectItem key={country.code} value={country.name}>
-                                      {country.flag} {country.name}
-                                    </SelectItem>
-                                  ))}
+
+                                {/* —— P A T C H E D   C O N T E N T —— */}
+                                <SelectContent
+                                  position="popper"
+                                  align="start"
+                                  side="bottom"
+                                  sideOffset={5}
+                                  className="max-h-[300px] w-[--radix-select-trigger-width] rounded-xl bg-white shadow-lg overflow-y-auto z-[999]"
+                                >
+                                  {/* sticky search bar */}
+                                  <div className="sticky top-0 z-10 bg-white p-2 border-b">
+                                    <Input
+                                      type="text"
+                                      placeholder="Search country…"
+                                      value={searchCountry}
+                                      onChange={(e) => setSearchCountry(e.target.value)}
+                                      className="rounded-xl"
+                                    />
+                                  </div>
+
+                                  {getAllCountries()
+                                    .filter((c) =>
+                                      c.name.toLowerCase().includes(searchCountry.toLowerCase())
+                                    )
+                                    .map((country) => (
+                                      <SelectItem key={country.code} value={country.name}>
+                                        <span className="mr-2">{country.flag}</span>
+                                        {country.name}
+                                      </SelectItem>
+                                    ))}
                                 </SelectContent>
+                                {/* —— end patched content —— */}
+
                               </Select>
                               <FormMessage />
                             </FormItem>
