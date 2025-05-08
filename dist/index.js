@@ -1,232 +1,28 @@
+var __defProp = Object.defineProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+
 // server/index.ts
 import express2 from "express";
 
 // server/routes.ts
 import { createServer } from "http";
 
-// server/storage.ts
-import fs from "fs/promises";
-import path from "path";
-var DB_FILE = path.join(process.cwd(), "db.json");
-var Storage = class {
-  db = {
-    users: [],
-    batteries: [],
-    logins: [],
-    inquiries: [],
-    nextUserId: 1,
-    nextBatteryId: 1,
-    nextInquiryId: 1
-  };
-  constructor() {
-    this.loadDB();
-  }
-  async loadDB() {
-    try {
-      const data = await fs.readFile(DB_FILE, "utf-8");
-      this.db = JSON.parse(data);
-      if (!this.db.logins) this.db.logins = [];
-      if (!this.db.inquiries) this.db.inquiries = [];
-      if (!this.db.nextInquiryId) this.db.nextInquiryId = 1;
-    } catch (error) {
-      await this.saveDB();
-    }
-  }
-  async saveDB() {
-    await fs.writeFile(DB_FILE, JSON.stringify(this.db, null, 2));
-  }
-  // User Operations
-  async getUser(id) {
-    return this.db.users.find((u) => u.id === id);
-  }
-  async getUserByEmail(email) {
-    return this.db.users.find((user) => user.email === email);
-  }
-  async createUser(userData) {
-    const user = {
-      ...userData,
-      id: this.db.nextUserId++,
-      createdAt: (/* @__PURE__ */ new Date()).toISOString(),
-      username: userData.username
-    };
-    this.db.users.push(user);
-    await this.saveDB();
-    return user;
-  }
-  // Battery Operations
-  async createBattery(insertBattery) {
-    const battery = {
-      ...insertBattery,
-      id: this.db.nextBatteryId++,
-      createdAt: (/* @__PURE__ */ new Date()).toISOString(),
-      updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
-      userId: insertBattery.userId
-    };
-    this.db.batteries.push(battery);
-    await this.saveDB();
-    return battery;
-  }
-  // Track user logins
-  async trackLogin(userId, email) {
-    const loginEntry = {
-      userId,
-      email,
-      timestamp: (/* @__PURE__ */ new Date()).toISOString()
-    };
-    this.db.logins.push(loginEntry);
-    await this.saveDB();
-  }
-  // Get all login records
-  async getLogins() {
-    return this.db.logins || [];
-  }
-  // Create an inquiry
-  async createInquiry(data) {
-    const inquiry = {
-      id: this.db.nextInquiryId++,
-      ...data,
-      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-      status: "new"
-    };
-    this.db.inquiries.push(inquiry);
-    await this.saveDB();
-    return inquiry;
-  }
-  // Get all inquiries
-  async getInquiries() {
-    return this.db.inquiries || [];
-  }
-  async getBattery(id) {
-    const batteriesData = await this.getBatteries(100, 0);
-    const battery = batteriesData.find((b) => {
-      if (typeof id === "number") {
-        console.log("Numeric comparison result:", b.id === id ? "Found" : "Not found");
-        return b.id === id;
-      } else {
-        console.log("String comparison result:", String(b.id) === id ? "Found" : "Not found");
-        return String(b.id) === id;
-      }
-    });
-    return battery;
-  }
-  async updateBattery(id, updatedBattery) {
-    const batteryToUpdate = await this.getBattery(id);
-    if (!batteryToUpdate) {
-      return void 0;
-    }
-    const updatedBatteryData = {
-      ...batteryToUpdate,
-      ...updatedBattery,
-      // Preserve the original ID and user ID
-      id: batteryToUpdate.id,
-      userId: batteryToUpdate.userId,
-      updatedAt: (/* @__PURE__ */ new Date()).toISOString()
-    };
-    const index = this.db.batteries.findIndex((b) => b.id === batteryToUpdate.id);
-    if (index !== -1) {
-      this.db.batteries[index] = updatedBatteryData;
-      await this.saveDB();
-      return updatedBatteryData;
-    }
-    return void 0;
-  }
-  async getBatteries(limit = 20, offset = 0) {
-    return this.db.batteries.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(offset, offset + limit);
-  }
-  async deleteBattery(id) {
-    const index = this.db.batteries.findIndex((b) => b.id === id);
-    if (index === -1) return false;
-    this.db.batteries.splice(index, 1);
-    await this.saveDB();
-    return true;
-  }
-  // Search Operations
-  async searchBatteries(params) {
-    console.log("[Search Params]", params);
-    if (!params || Object.keys(params).length === 0) {
-      console.log("[All Batteries]", this.db.batteries);
-      return this.db.batteries;
-    }
-    let results = [...this.db.batteries];
-    if (params.query) {
-      const query = params.query.toLowerCase();
-      results = results.filter(
-        (battery) => battery.title?.toLowerCase().includes(query) || battery.description?.toLowerCase().includes(query) || battery.manufacturer?.toLowerCase().includes(query) || battery.technologyType?.toLowerCase().includes(query)
-      );
-    }
-    if (params.batteryType) {
-      results = results.filter((battery) => battery.batteryType === params.batteryType);
-    }
-    if (params.category) {
-      results = results.filter((battery) => battery.category === params.category);
-    }
-    if (params.minCapacity !== void 0) {
-      results = results.filter((battery) => Number(battery.capacity) >= params.minCapacity);
-    }
-    if (params.maxCapacity !== void 0) {
-      results = results.filter((battery) => Number(battery.capacity) <= params.maxCapacity);
-    }
-    if (params.minPrice !== void 0) {
-      results = results.filter((battery) => Number(battery.price) >= params.minPrice);
-    }
-    if (params.maxPrice !== void 0) {
-      results = results.filter((battery) => Number(battery.price) <= params.maxPrice);
-    }
-    if (params.location) {
-      results = results.filter(
-        (battery) => battery.location?.toLowerCase().includes(params.location.toLowerCase())
-      );
-    }
-    if (params.country) {
-      results = results.filter((battery) => battery.country === params.country);
-    }
-    if (params.listingType) {
-      results = results.filter((battery) => battery.listingType === params.listingType);
-    }
-    if (params.manufacturer) {
-      results = results.filter(
-        (battery) => battery.manufacturer?.toLowerCase() === params.manufacturer?.toLowerCase()
-      );
-    }
-    console.log("[Search Results]", results);
-    return results;
-  }
-  // Category Operations
-  async getBatteriesByCategory(category) {
-    return this.db.batteries.filter((battery) => battery.category === category).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }
-  async getFeaturedBatteries(limit = 4) {
-    return this.db.batteries.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, limit);
-  }
-  // User-specific Operations
-  async getUserBatteries(userId) {
-    return this.db.batteries.filter((battery) => battery.userId === userId).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }
-  // Debug methods
-  getDebugDump() {
-    return {
-      batteryCount: this.db.batteries.length,
-      userCount: this.db.users.length,
-      nextBatteryId: this.db.nextBatteryId,
-      nextUserId: this.db.nextUserId,
-      batteryIds: this.db.batteries.map((b) => ({
-        id: b.id,
-        type: typeof b.id,
-        title: b.title
-      }))
-    };
-  }
-  async getAllBatteryIds() {
-    return this.db.batteries.map((b) => ({
-      id: b.id,
-      type: typeof b.id,
-      title: b.title
-    }));
-  }
-};
-var storage = new Storage();
-
 // shared/schema.ts
+var schema_exports = {};
+__export(schema_exports, {
+  batteries: () => batteries,
+  batteryCategories: () => batteryCategories,
+  batterySearchSchema: () => batterySearchSchema,
+  batteryTypes: () => batteryTypes,
+  inquiries: () => inquiries,
+  insertBatterySchema: () => insertBatterySchema,
+  insertUserSchema: () => insertUserSchema,
+  listingTypes: () => listingTypes,
+  users: () => users
+});
 import { pgTable, text, serial, integer, boolean, timestamp, numeric, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -257,7 +53,7 @@ var listingTypes = {
   SELL: "sell",
   RENT: "rent"
 };
-var batterys = pgTable("batteries", {
+var batteries = pgTable("batteries", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   title: text("title").notNull(),
@@ -288,6 +84,15 @@ var batterys = pgTable("batteries", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
+var inquiries = pgTable("inquiries", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  batteryId: integer("battery_id").notNull().references(() => batteries.id),
+  message: text("message").notNull(),
+  contactEmail: text("contact_email"),
+  status: text("status").default("new"),
+  timestamp: timestamp("timestamp").defaultNow()
+});
 var insertUserSchema = createInsertSchema(users).pick({
   email: true,
   password: true,
@@ -295,7 +100,7 @@ var insertUserSchema = createInsertSchema(users).pick({
   location: true,
   country: true
 });
-var insertBatterySchema = createInsertSchema(batterys).omit({
+var insertBatterySchema = createInsertSchema(batteries).omit({
   id: true,
   createdAt: true,
   updatedAt: true
@@ -319,9 +124,117 @@ var batterySearchSchema = z.object({
   maxPrice: z.number().optional(),
   location: z.string().optional(),
   country: z.string().optional(),
-  listingType: z.enum([listingTypes.BUY, listingTypes.SELL, listingTypes.RENT, listingTypes.LEND]).optional(),
+  listingType: z.enum([listingTypes.BUY, listingTypes.SELL, listingTypes.RENT]).optional(),
   manufacturer: z.string().optional()
 });
+
+// server/db.ts
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
+import dotenv from "dotenv";
+dotenv.config();
+var pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL?.includes("render.com") ? { rejectUnauthorized: false } : false
+});
+var db = drizzle(pool, { schema: schema_exports });
+
+// server/storage.ts
+import { and, eq, gte, lte, ilike } from "drizzle-orm/expressions";
+import { desc } from "drizzle-orm";
+var Storage = class {
+  // ✅ User Operations
+  async getUser(id) {
+    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    return result[0];
+  }
+  async getUserByEmail(email) {
+    const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    return result[0];
+  }
+  async createUser(userData) {
+    const [user] = await db.insert(users).values({ ...userData, createdAt: /* @__PURE__ */ new Date() }).returning();
+    return user;
+  }
+  // ✅ Battery Operations
+  async createBattery(insertBattery) {
+    const [battery] = await db.insert(batteries).values({ ...insertBattery, createdAt: /* @__PURE__ */ new Date(), updatedAt: /* @__PURE__ */ new Date() }).returning();
+    return battery;
+  }
+  async getBattery(id) {
+    const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+    const result = await db.select().from(batteries).where(eq(batteries.id, numericId)).limit(1);
+    return result[0];
+  }
+  async updateBattery(id, updatedBattery) {
+    const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+    const [battery] = await db.update(batteries).set({ ...updatedBattery, updatedAt: /* @__PURE__ */ new Date() }).where(eq(batteries.id, numericId)).returning();
+    return battery ?? void 0;
+  }
+  async deleteBattery(id) {
+    const result = await db.delete(batteries).where(eq(batteries.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+  async getBatteries(limit = 20, offset = 0) {
+    return db.select().from(batteries).orderBy(desc(batteries.createdAt)).limit(limit).offset(offset);
+  }
+  async searchBatteries(params) {
+    const whereClauses = [];
+    if (params.query) {
+      const query = `%${String(params.query).toLowerCase()}%`;
+      whereClauses.push(
+        ilike(batteries.title, query),
+        ilike(batteries.description, query),
+        ilike(batteries.manufacturer, query),
+        ilike(batteries.technologyType, query)
+      );
+    }
+    if (params.batteryType) whereClauses.push(eq(batteries.batteryType, params.batteryType));
+    if (params.category) whereClauses.push(eq(batteries.category, params.category));
+    if (params.minCapacity !== void 0) whereClauses.push(gte(batteries.capacity, params.minCapacity));
+    if (params.maxCapacity !== void 0) whereClauses.push(lte(batteries.capacity, params.maxCapacity));
+    if (params.minPrice !== void 0) whereClauses.push(gte(batteries.price, params.minPrice));
+    if (params.maxPrice !== void 0) whereClauses.push(lte(batteries.price, params.maxPrice));
+    if (params.location) whereClauses.push(ilike(batteries.location, `%${params.location}%`));
+    if (params.country) whereClauses.push(eq(batteries.country, params.country));
+    if (params.listingType) whereClauses.push(eq(batteries.listingType, params.listingType));
+    if (params.manufacturer) whereClauses.push(ilike(batteries.manufacturer, params.manufacturer));
+    return db.select().from(batteries).where(and(...whereClauses)).orderBy(desc(batteries.createdAt));
+  }
+  async getBatteriesByCategory(category) {
+    return db.select().from(batteries).where(eq(batteries.category, category)).orderBy(desc(batteries.createdAt));
+  }
+  async getFeaturedBatteries(limit = 4) {
+    return db.select().from(batteries).orderBy(desc(batteries.createdAt)).limit(limit);
+  }
+  async getUserBatteries(userId) {
+    return db.select().from(batteries).where(eq(batteries.userId, userId)).orderBy(desc(batteries.createdAt));
+  }
+  async getAllBatteryIds() {
+    const result = await db.select({ id: batteries.id, title: batteries.title }).from(batteries);
+    return result.map((b) => ({
+      id: b.id,
+      type: typeof b.id,
+      title: b.title
+    }));
+  }
+  // ✅ Inquiry Operations (PostgreSQL only)
+  async createInquiry(data) {
+    const [inquiry] = await db.insert(inquiries).values({
+      userId: data.userId,
+      batteryId: data.batteryId,
+      message: data.message,
+      contactEmail: data.contactEmail,
+      status: "new",
+      timestamp: /* @__PURE__ */ new Date()
+    }).returning();
+    return inquiry;
+  }
+  async getInquiries() {
+    return db.select().from(inquiries).orderBy(desc(inquiries.timestamp));
+  }
+};
+var storage = new Storage();
 
 // server/routes.ts
 import { ZodError } from "zod";
@@ -356,21 +269,30 @@ function isAuthenticated(req, res, next) {
 function registerAuthRoutes(app2) {
   app2.post("/api/register", async (req, res) => {
     try {
-      const { email, username, password } = req.body;
-      if (!email || !username || !password) {
-        return res.status(400).json({ message: "Email, username, and password are required" });
+      const { email, password, phone, location, country } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
       }
       const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {
         return res.status(409).json({ message: "Email already in use" });
       }
-      const existingUsername = await storage.getUserByUsername(username);
-      if (existingUsername) {
-        return res.status(409).json({ message: "Username already in use" });
-      }
       const hashedPassword = await hashPassword(password);
-      const newUser = await storage.createUser({ email, username, password: hashedPassword });
-      return res.status(201).json({ message: "User created successfully" });
+      const newUser = await storage.createUser({
+        email,
+        password: hashedPassword,
+        phone,
+        location,
+        country
+      });
+      const sessionId = randomBytes(32).toString("hex");
+      sessions.set(sessionId, newUser.id);
+      await storage.trackLogin(newUser.id, newUser.email);
+      const { password: _, ...userWithoutPassword } = newUser;
+      return res.status(201).json({
+        ...userWithoutPassword,
+        token: sessionId
+      });
     } catch (error) {
       console.error("Registration error:", error);
       return res.status(500).json({ message: "An error occurred during registration" });
@@ -496,8 +418,8 @@ async function registerRoutes(app2) {
       if (isNaN(limit) || isNaN(offset)) {
         return res.status(400).json({ message: "Invalid limit or offset" });
       }
-      const batteries = await storage.getBatteries(limit, offset);
-      return res.json(batteries);
+      const batteries2 = await storage.getBatteries(limit, offset);
+      return res.json(batteries2);
     } catch (error) {
       return res.status(500).json({ message: "Failed to get batteries" });
     }
@@ -604,8 +526,8 @@ async function registerRoutes(app2) {
   app2.get("/api/categories/:category", async (req, res) => {
     try {
       const category = req.params.category;
-      const batteries = await storage.getBatteriesByCategory(category);
-      return res.json(batteries);
+      const batteries2 = await storage.getBatteriesByCategory(category);
+      return res.json(batteries2);
     } catch (error) {
       return res.status(500).json({ message: "Failed to get batteries by category" });
     }
@@ -616,8 +538,8 @@ async function registerRoutes(app2) {
       if (isNaN(limit)) {
         return res.status(400).json({ message: "Invalid limit" });
       }
-      const batteries = await storage.getFeaturedBatteries(limit);
-      return res.json(batteries);
+      const batteries2 = await storage.getFeaturedBatteries(limit);
+      return res.json(batteries2);
     } catch (error) {
       return res.status(500).json({ message: "Failed to get featured batteries" });
     }
@@ -632,8 +554,8 @@ async function registerRoutes(app2) {
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      const batteries = await storage.getUserBatteries(userId);
-      return res.json(batteries);
+      const batteries2 = await storage.getUserBatteries(userId);
+      return res.json(batteries2);
     } catch (error) {
       return res.status(500).json({ message: "Failed to get user batteries" });
     }
@@ -682,8 +604,8 @@ async function registerRoutes(app2) {
       if (!user || user.id !== 1) {
         return res.status(403).json({ message: "Not authorized to access admin data" });
       }
-      const inquiries = await storage.getInquiries();
-      return res.json(inquiries);
+      const inquiries2 = await storage.getInquiries();
+      return res.json(inquiries2);
     } catch (error) {
       console.error("Error getting inquiries:", error);
       return res.status(500).json({ message: "Failed to get inquiry data" });
@@ -695,14 +617,14 @@ async function registerRoutes(app2) {
 
 // server/vite.ts
 import express from "express";
-import fs2 from "fs";
-import path3 from "path";
+import fs from "fs";
+import path2 from "path";
 import { createServer as createViteServer, createLogger } from "vite";
 
 // vite.config.ts
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import path2 from "path";
+import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 var vite_config_default = defineConfig({
   plugins: [
@@ -716,14 +638,14 @@ var vite_config_default = defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path2.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path2.resolve(import.meta.dirname, "shared"),
-      "@assets": path2.resolve(import.meta.dirname, "attached_assets")
+      "@": path.resolve(import.meta.dirname, "client", "src"),
+      "@shared": path.resolve(import.meta.dirname, "shared"),
+      "@assets": path.resolve(import.meta.dirname, "attached_assets")
     }
   },
-  root: path2.resolve(import.meta.dirname, "client"),
+  root: path.resolve(import.meta.dirname, "client"),
   build: {
-    outDir: path2.resolve(import.meta.dirname, "dist/public"),
+    outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true
   }
 });
@@ -763,13 +685,13 @@ async function setupVite(app2, server) {
   app2.use("*", async (req, res, next) => {
     const url = req.originalUrl;
     try {
-      const clientTemplate = path3.resolve(
+      const clientTemplate = path2.resolve(
         import.meta.dirname,
         "..",
         "client",
         "index.html"
       );
-      let template = await fs2.promises.readFile(clientTemplate, "utf-8");
+      let template = await fs.promises.readFile(clientTemplate, "utf-8");
       template = template.replace(
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid()}"`
@@ -783,15 +705,15 @@ async function setupVite(app2, server) {
   });
 }
 function serveStatic(app2) {
-  const distPath = path3.resolve(import.meta.dirname, "public");
-  if (!fs2.existsSync(distPath)) {
+  const distPath = path2.resolve(import.meta.dirname, "public");
+  if (!fs.existsSync(distPath)) {
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
   }
   app2.use(express.static(distPath));
   app2.use("*", (_req, res) => {
-    res.sendFile(path3.resolve(distPath, "index.html"));
+    res.sendFile(path2.resolve(distPath, "index.html"));
   });
 }
 
@@ -801,7 +723,7 @@ app.use(express2.json());
 app.use(express2.urlencoded({ extended: false }));
 app.use((req, res, next) => {
   const start = Date.now();
-  const path4 = req.path;
+  const path3 = req.path;
   let capturedJsonResponse = void 0;
   const originalResJson = res.json;
   res.json = function(bodyJson, ...args) {
@@ -810,8 +732,8 @@ app.use((req, res, next) => {
   };
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path4.startsWith("/api")) {
-      let logLine = `${req.method} ${path4} ${res.statusCode} in ${duration}ms`;
+    if (path3.startsWith("/api")) {
+      let logLine = `${req.method} ${path3} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
