@@ -110,11 +110,14 @@ class Storage {
     if (params.listingType) whereClauses.push(eq(batteries.listingType, params.listingType));
     if (params.manufacturer) whereClauses.push(ilike(batteries.manufacturer, params.manufacturer));
 
-    return db
-      .select()
-      .from(batteries)
-      .where(and(...whereClauses))
-      .orderBy(desc(batteries.createdAt));
+    const query = db.select().from(batteries);
+
+    if (whereClauses.length > 0) {
+      query.where(and(...whereClauses));
+    }
+
+    return query.orderBy(desc(batteries.createdAt));
+
   }
 
   async getBatteriesByCategory(category: string): Promise<Battery[]> {
