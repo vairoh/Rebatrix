@@ -25,7 +25,7 @@ export default function Marketplace() {
     const params = new URLSearchParams(window.location.search);
     const type = params.get("type");
     
-    if (type && (type === "buy" || type === "sell" || type === "rent" || type === "lend")) {
+    if (type && (type === "buy" || type === "sell" || type === "rent")) {
       setSearchParams(prev => ({ ...prev, listingType: type }));
     }
   }, [location]);
@@ -102,7 +102,7 @@ export default function Marketplace() {
         return rest;
       });
     } else {
-      setSearchParams(prev => ({ ...prev, listingType: value as "buy" | "sell" | "rent" | "lend" }));
+      setSearchParams(prev => ({ ...prev, listingType: value as "buy" | "sell" | "rent" }));
     }
   };
 
@@ -241,7 +241,6 @@ export default function Marketplace() {
                     <SelectItem value={listingTypes.BUY}>Buy</SelectItem>
                     <SelectItem value={listingTypes.SELL}>Sell</SelectItem>
                     <SelectItem value={listingTypes.RENT}>Rent</SelectItem>
-                    <SelectItem value={listingTypes.LEND}>Lend</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

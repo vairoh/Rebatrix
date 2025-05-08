@@ -155,7 +155,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid search parameters", errors: fromZodError(parsed.error).message });
       const results = await storage.searchBatteries(parsed.data);
       return res.json(results);
-    } catch (e) {
+    } catch (err) {
+      console.error("[/api/search Error]", err);
       return res.status(500).json({ message: "Search failed" });
     }
   });
@@ -175,7 +176,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (Number.isNaN(limit)) return res.status(400).json({ message: "Invalid limit" });
       const batteries = await storage.getFeaturedBatteries(limit);
       return res.json(batteries);
-    } catch (_) {
+    } catch (err) {
+      console.error("[/api/featured Error]", err);
       return res.status(500).json({ message: "Failed to get featured batteries" });
     }
   });
