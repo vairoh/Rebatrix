@@ -80,7 +80,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid limit or offset" });
       const batteries = await storage.getBatteries(limit, offset);
       return res.json(batteries);
-    } catch (_) {
+    } catch (err) {
+      console.error("[/api/batteries Error]", err);
       return res.status(500).json({ message: "Failed to get batteries" });
     }
   });
