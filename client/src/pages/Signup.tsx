@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
-import { countries } from "@/lib/countries";
+import { getAllCountries } from "@/lib/country-utils";
 
 export default function Signup() {
   const [, setLocation] = useLocation();
@@ -201,7 +201,7 @@ export default function Signup() {
                     <SelectTrigger className={`border rounded-xl ${formErrors.country ? 'border-red-500' : 'border-black'}`}>
                       <SelectValue placeholder="Select country" />
                     </SelectTrigger>
-                    <SelectContent position="popper" align="start" side="bottom" sideOffset={5} className="max-h-[300px] rounded-xl w-[--radix-select-trigger-width]">
+                    <SelectContent position="popper" align="start" side="bottom" sideOffset={5} className="max-h-[300px] rounded-xl w-[--radix-select-trigger-width] overflow-y-auto z-[999]">
                       <div className="sticky top-0 bg-white p-2 border-b">
                         <Input
                           type="text"
@@ -211,7 +211,7 @@ export default function Signup() {
                           className="rounded-xl"
                         />
                       </div>
-                      {countries
+                      {getAllCountries
                         .filter(country => 
                           country.name.toLowerCase().includes(searchCountry.toLowerCase())
                         )
