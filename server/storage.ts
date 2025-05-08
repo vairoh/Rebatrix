@@ -7,6 +7,7 @@ import {
   type BatterySearch,
   batteries,
   inquiries,
+  logins,
 } from "@shared/schema";
 import { db } from "./db";
 import { and, eq, gte, lte, ilike } from "drizzle-orm/expressions";
@@ -171,6 +172,24 @@ class Storage {
       .returning();
     return inquiry;
   }
+
+  async trackLogin(userId: number, email: string): Promise<void> {
+    await db.insert(logins).values({
+      userId,
+      email,
+      timestamp: new Date(),
+    });
+  }
+
+  async getLogins(): Promise<
+  { id: number; userId: number; email: string; timestamp: Date }[]
+> {
+  return db
+    .select()
+    .from(logins)
+    .orderBy(desc(logins.timestamp));
+}
+
 
   async getInquiries(): Promise<any[]> {
     return db

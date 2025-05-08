@@ -1,5 +1,5 @@
 
-import { pgTable, text, serial, integer, boolean, timestamp, numeric, json } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer,varchar, boolean, timestamp, numeric, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -12,6 +12,14 @@ export const users = pgTable("users", {
   country: text("country").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+export const logins = pgTable("logins", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  email: varchar("email", { length: 255 }).notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
 
 export const batteryTypes = {
   NEW: "new",

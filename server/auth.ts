@@ -112,15 +112,8 @@
    
          const token = createSession(newUser.id);
    
-         /* Optional login tracking (no-op if not implemented yet) */
-         try {
-           if (typeof (storage as any).trackLogin === "function") {
-             await (storage as any).trackLogin(newUser.id, newUser.email);
-           }
-         } catch (e) {
-           console.warn("trackLogin failed (non-critical):", e);
-         }
-   
+         await storage.trackLogin(newUser.id, newUser.email);
+            
          const { password: _pw, ...safeUser } = newUser;
          return res.status(201).json({ ...safeUser, token });
        } catch (err) {
@@ -142,13 +135,7 @@
    
          const token = createSession(user.id);
    
-         try {
-           if (typeof (storage as any).trackLogin === "function") {
-             await (storage as any).trackLogin(user.id, user.email);
-           }
-         } catch (e) {
-           console.warn("trackLogin failed (non-critical):", e);
-         }
+         await storage.trackLogin(user.id, user.email);
    
          const { password: _pw, ...safeUser } = user;
          return res.status(200).json({ ...safeUser, token });
