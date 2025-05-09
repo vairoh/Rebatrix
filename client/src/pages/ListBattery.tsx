@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
@@ -59,19 +60,7 @@ export default function ListBattery() {
     }
   }, []);
 
-  // Set SEO meta tags
-  useEffect(() => {
-    document.title = "List Your Battery | Rebatrix";
 
-    // Update meta description
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute(
-        "content", 
-        "List your new, used, or second-life battery on Rebatrix. Connect with buyers across Europe looking for energy storage solutions."
-      );
-    }
-  }, []);
 
   // Create a validation schema based on the shared insertBatterySchema
   const formSchema = z.object({
@@ -231,6 +220,22 @@ export default function ListBattery() {
 
   return (
     <div className="bg-neutral-50 py-12">
+      <Helmet>
+      <title>List Your Battery | Rebatrix</title>
+      <meta
+        name="description"
+        content="List your new, used, or second-life battery on Rebatrix — the B2B energy storage marketplace for Europe. Reach businesses looking for batteries to buy or rent."
+      />
+      <meta
+        name="keywords"
+        content="list battery, sell battery, rent battery, B2B battery marketplace, energy storage listing, second-life batteries, battery resale Europe"
+      />
+      <meta property="og:title" content="List Your Battery | Rebatrix" />
+      <meta property="og:description" content="Reach European buyers and renters by listing your battery on Rebatrix. Fast, secure, and optimized for the B2B energy market." />
+      <meta property="og:image" content="/logo.png" />
+      <meta property="og:url" content="https://rebatrix.com/list-battery" />
+      <meta name="robots" content="index, follow" />
+    </Helmet>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div 
           className="max-w-3xl mx-auto"

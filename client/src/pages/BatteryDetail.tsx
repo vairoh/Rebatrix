@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
@@ -254,6 +255,22 @@ export default function BatteryDetail() {
 
   return (
     <div className="bg-neutral-50 py-12">
+      <Helmet>
+        <title>{battery?.capacity} kWh Battery | Rebatrix</title>
+        <meta
+          name="description"
+          content={`${battery?.batteryType} ${battery?.manufacturer} - ${battery?.capacity} kWh ${battery?.technologyType} battery. ${battery?.description?.slice(0, 150)}...`}
+        />
+        <meta
+          name="keywords"
+          content="battery, energy storage, BESS, second-life battery, rent battery, sell battery, buy battery, Rebatrix marketplace"
+        />
+        <meta property="og:title" content={`${battery?.capacity} kWh Battery | Rebatrix`} />
+        <meta property="og:description" content={`${battery?.manufacturer} - ${battery?.capacity} kWh ${battery?.technologyType} battery for ${battery?.listingType}`} />
+        <meta property="og:image" content="/logo.png" />
+        <meta property="og:url" content={`https://rebatrix.com/battery/${battery?.id}`} />
+        <meta name="robots" content="index, follow" />
+      </Helmet>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Breadcrumbs */}

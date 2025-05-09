@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { Helmet } from "react-helmet";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -127,19 +128,25 @@ export default function Marketplace() {
     setCapacityRange([0, 500]);
   };
 
-  // Set SEO meta tags
-  useEffect(() => {
-    document.title = "Battery Marketplace | Rebatrix";
-    
-    // Update meta description
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute("content", "Browse our marketplace for battery energy storage systems (BESS) in Europe. Find new, used, and second-life batteries for sale or rental.");
-    }
-  }, []);
 
   return (
     <div className="py-10 bg-white">
+      <Helmet>
+      <title>Battery Marketplace | Rebatrix</title>
+      <meta
+        name="description"
+        content="Browse our marketplace for battery energy storage systems (BESS) in Europe. Find new, used, and second-life batteries for sale or rental."
+      />
+      <meta
+        name="keywords"
+        content="battery marketplace, energy storage, BESS, buy batteries, sell batteries, second-life battery, Germany energy storage, Europe battery systems"
+      />
+      <meta property="og:title" content="Battery Marketplace | Rebatrix" />
+      <meta property="og:description" content="Discover battery energy storage listings in Europe. B2B platform for selling, buying, and renting new or second-life batteries." />
+      <meta property="og:image" content="/logo.png" />
+      <meta property="og:url" content="https://rebatrix.com/marketplace" />
+      <meta name="robots" content="index, follow" />
+    </Helmet>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="font-heading text-3xl font-bold text-black mb-4">
