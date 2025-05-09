@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { batteryTypes, batteryCategories, listingTypes } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
-import { getStatesForCountry } from "@/lib/countries";
+import { getStatesForCountry } from "@/lib/country-utils";
 import CountrySelect from "@/components/CountrySelect";
 
 export default function Marketplace() {
