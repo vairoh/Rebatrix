@@ -29,7 +29,8 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { countries, getStatesForCountry } from "@/lib/countries";
+import CountrySelect from "@/components/CountrySelect";
+import { getStatesForCountry } from "@/lib/country-utils";
 
 export default function EditBattery() {
   const { id } = useParams();
@@ -679,27 +680,18 @@ export default function EditBattery() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Country*</FormLabel>
-                              <Select 
-                                value={field.value} 
-                                onValueChange={field.onChange}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select country" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent className="max-h-80">
-                                  {countries.map((country) => (
-                                    <SelectItem key={country.code} value={country.name}>
-                                      {country.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              <CountrySelect
+                                value={field.value}
+                                onChange={(value) => {
+                                  field.onChange(value);
+                                  form.setValue("location", ""); // Reset city/state on country change
+                                }}
+                              />
                               <FormMessage />
                             </FormItem>
                           )}
                         />
+
 
                         <FormField
                           control={form.control}
