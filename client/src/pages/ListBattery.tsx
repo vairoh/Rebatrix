@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { batteryTypes, batteryCategories, listingTypes } from "@shared/schema";
 import { Loader2 } from "lucide-react";
+import CountrySelect from "@/components/CountrySelect";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,7 +33,7 @@ import { getAllCountries, getStatesForCountry } from "@/lib/country-utils";
 
 export default function ListBattery() {
   const [, navigate] = useLocation();
-  const [searchCountry, setSearchCountry] = useState("");  const { toast } = useToast();
+  const { toast } = useToast();
   const { user, isLoading } = useAuth();
   const [listingType, setListingType] = useState("sell");
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
@@ -344,58 +345,17 @@ export default function ListBattery() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Country*</FormLabel>
-                              <Select 
-                                value={field.value} 
-                                onValueChange={(value) => {
-                                  field.onChange(value);
-                                  form.setValue('location', '');
+                              <CountrySelect
+                                value={field.value}
+                                onChange={(v) => {
+                                  field.onChange(v);
+                                  form.setValue("location", "");
                                 }}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select country" />
-                                  </SelectTrigger>
-                                </FormControl>
-
-                                {/* —— P A T C H E D   C O N T E N T —— */}
-                                <SelectContent
-                                  position="popper"
-                                  align="start"
-                                  side="bottom"
-                                  sideOffset={5}
-                                  avoidCollisions={false}
-                                  className="max-h-[300px] w-[--radix-select-trigger-width] rounded-xl bg-white shadow-lg overflow-y-auto z-[999]"
-                                >
-                                  {/* sticky search bar */}
-                                  <div className="sticky top-0 z-10 bg-white p-2 border-b">
-                                    <Input
-                                      type="text"
-                                      placeholder="Search country…"
-                                      value={searchCountry}
-                                      onChange={(e) => setSearchCountry(e.target.value)}
-                                      className="rounded-xl"
-                                    />
-                                  </div>
-                                  <div className="max-h-[300px] overflow-y-auto">
-                                    {getAllCountries()
-                                      .filter((c) =>
-                                        c.name.toLowerCase().includes(searchCountry.toLowerCase())
-                                      )
-                                      .map((country) => (
-                                        <SelectItem key={country.code} value={country.name}>
-                                          <span className="mr-2">{country.flag}</span>
-                                          {country.name}
-                                        </SelectItem>
-                                      ))}
-                                    </div>
-                                  </SelectContent>
-                                  {/* —— end patched content —— */}
-
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                              />
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
 
                         <FormField
