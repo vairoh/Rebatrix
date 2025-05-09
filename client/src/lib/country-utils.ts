@@ -32,9 +32,18 @@ export function getAllCountries(): CountryOption[] {
 }
 
 /**
- * Returns all states/regions for the given country name
+ * Returns all states/regions for the given country name or code
  * (delegates to your existing lib/countries:getStatesForCountry).
  */
-export function getStatesForCountry(countryName: string): string[] {
-  return originalGetStates(countryName);
+export function getStatesForCountry(country: string): string[] {
+  // Try directly using the code
+  let states = originalGetStates(country);
+  if (states.length > 0) return states;
+
+  // Try converting name to code
+  const match = getAllCountries().find(
+    (c) => c.name.toLowerCase() === country.toLowerCase()
+  );
+
+  return match ? originalGetStates(match.code) : [];
 }
