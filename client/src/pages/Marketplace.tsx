@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { batteryTypes, batteryCategories, listingTypes } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
-import { countries, getStatesForCountry } from "@/lib/countries";
+import { getStatesForCountry } from "@/lib/countries";
+import { CountrySelect } from "@/components/ui/country-select";
 
 export default function Marketplace() {
   const { user } = useAuth();
@@ -304,28 +305,18 @@ export default function Marketplace() {
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Country
                 </label>
-                <Select 
-                  value={searchParams.country}
-                  onValueChange={(value) => {
-                    setSearchParams(prev => ({ 
-                      ...prev, 
+                <CountrySelect
+                  value={searchParams.country || ""}
+                  onChange={(value) => {
+                    setSearchParams(prev => ({
+                      ...prev,
                       country: value,
-                      location: undefined // Reset location when country changes
+                      location: undefined,
                     }));
                   }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {countries.map((country) => (
-                      <SelectItem key={country.code} value={country.name}>
-                        {country.flag} {country.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                />
               </div>
+
 
               {/* State/Location filter */}
               <div>
