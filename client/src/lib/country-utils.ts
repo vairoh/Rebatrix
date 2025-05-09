@@ -1,16 +1,12 @@
-// lib/country-utils.ts
-import countriesData from "world-countries";
+// ✅ Updated: lib/country-utils.ts
 import { Country, State } from "country-state-city";
 
 export type CountryOption = {
   name: string;
-  code: string;
+  code: string; // ISO-2
   flag: string;
 };
 
-/**
- * Given an ISO country code (e.g., "DE"), return its 🇩🇪 emoji flag.
- */
 function getFlagEmoji(isoCode: string): string {
   return isoCode
     .toUpperCase()
@@ -34,36 +30,9 @@ export function getAllCountries(): CountryOption[] {
 }
 
 /**
- * Given a country **name** or **ISO-2 code**, return its states/regions.
- * Falls back gracefully if the code is unknown or the SDK has no data.
+ * Returns all states/regions for the given ISO-2 country code.
  */
-export function getStatesForCountry(countryInput: string): string[] {
-  if (!countryInput) return [];
-
-  let isoCode: string | undefined;
-
-  // ✅ If already an ISO-2 code like "DE"
-  if (countryInput.length === 2) {
-    isoCode = countryInput.toUpperCase();
-  }
-
-  // 🌍 Try to map name → ISO code using world-countries
-  if (!isoCode) {
-    const match = countriesData.find(
-      (c) => c.name.common.toLowerCase() === countryInput.toLowerCase()
-    );
-    if (match) isoCode = match.cca2;
-  }
-
-  // 🧭 Fallback to SDK name match
-  if (!isoCode) {
-    const match = Country.getAllCountries().find(
-      (c) => c.name.toLowerCase() === countryInput.toLowerCase()
-    );
-    if (match) isoCode = match.isoCode;
-  }
-
+export function getStatesForCountry(isoCode: string): string[] {
   if (!isoCode) return [];
-
   return State.getStatesOfCountry(isoCode).map((s) => s.name);
 }

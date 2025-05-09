@@ -1,5 +1,11 @@
 import { useState, useMemo } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { getAllCountries } from "@/lib/country-utils";
 
@@ -11,13 +17,11 @@ type Props = {
 
 export default function CountrySelect({ value, onChange, placeholder = "Select country" }: Props) {
   const [search, setSearch] = useState("");
-
   const countries = useMemo(() => getAllCountries(), []);
   const filtered = useMemo(
-    () =>
-      countries.filter((c) =>
-        c.name.toLowerCase().includes(search.trim().toLowerCase())
-      ),
+    () => countries.filter((c) =>
+      c.name.toLowerCase().includes(search.trim().toLowerCase())
+    ),
     [countries, search]
   );
 
@@ -43,7 +47,7 @@ export default function CountrySelect({ value, onChange, placeholder = "Select c
         </div>
 
         {filtered.map((c) => (
-          <SelectItem key={c.code} value={c.name}>
+          <SelectItem key={c.code} value={c.code}>
             <span className="mr-2">{c.flag}</span>
             {c.name}
           </SelectItem>
