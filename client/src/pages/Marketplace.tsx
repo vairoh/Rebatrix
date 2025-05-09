@@ -290,18 +290,6 @@ export default function Marketplace() {
                 </div>
               </div>
 
-              {/* Location filter */}
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Location
-                </label>
-                <Input
-                  placeholder="City"
-                  value={searchParams.location || ""}
-                  onChange={handleLocationChange}
-                />
-              </div>
-
               {/* Country filter */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -319,30 +307,45 @@ export default function Marketplace() {
                 />
               </div>
 
+              {/* State filter */}
+              {getStatesForCountry(selectedCountry).length > 0 ? (
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    State/Region
+                  </label>
+                  <Select
+                    value={searchParams.location}
+                    onValueChange={(value) =>
+                      setSearchParams((prev) => ({ ...prev, location: value }))
+                    }
+                    disabled={!selectedCountry}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select state" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getStatesForCountry(selectedCountry).map((region) => (
+                        <SelectItem key={region} value={region}>
+                          {region}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    City / Region
+                  </label>
+                  <Input
+                    placeholder="Enter location"
+                    value={searchParams.location || ""}
+                    onChange={handleLocationChange}
+                  />
+                </div>
+              )}
 
-              {/* State/Region filter */}
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  State/Region
-                </label>
-                <Select 
-                  value={searchParams.location}
-                  onValueChange={(value) => setSearchParams(prev => ({ ...prev, location: value }))}
-                  disabled={!selectedCountry}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={selectedCountry ? "Select state" : "Select country first"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getStatesForCountry(selectedCountry).map((state) => (
-                      <SelectItem key={state} value={state}>
-                        {state}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
+              
 
               {/* Manufacturer filter */}
               <div>

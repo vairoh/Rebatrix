@@ -228,7 +228,7 @@ export default function ListBattery() {
   };
 
   const selectedCountry = form.watch("country");
-  
+
   return (
     <div className="bg-neutral-50 py-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -363,31 +363,42 @@ export default function ListBattery() {
                         <FormField
                           control={form.control}
                           name="location"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>State*</FormLabel>
-                              <Select 
-                                value={field.value} 
-                                onValueChange={field.onChange}
-                                disabled={!selectedCountry}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder={selectedCountry ? "Select state" : "Select country first"} />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {getStatesForCountry(selectedCountry || "").map((state) => (
-                                    <SelectItem key={state} value={state}>
-                                      {state}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                          render={({ field }) => {
+                            const states = getStatesForCountry(selectedCountry || "");
+
+                            return (
+                              <FormItem>
+                                <FormLabel>{states.length ? "State / Region*" : "City / Location*"}</FormLabel>
+                                {states.length > 0 ? (
+                                  <Select value={field.value} onValueChange={field.onChange}>
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select state or region" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {states.map((state) => (
+                                        <SelectItem key={state} value={state}>
+                                          {state}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                ) : (
+                                  <FormControl>
+                                    <Input
+                                      placeholder="e.g. Berlin"
+                                      value={field.value}
+                                      onChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            );
+                          }}
                         />
+
                     </div>
                   </div>
 
