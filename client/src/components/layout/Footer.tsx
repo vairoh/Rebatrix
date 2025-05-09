@@ -39,7 +39,7 @@ export default function Footer() {
     { name: "Privacy Policy", path: "/privacy" },
     { name: "Terms of Service", path: "/terms" },
     { name: "Cookies", path: "/cookies" },
-    { name: "Accessibility", path: "/accessibility" },
+    { name: "Imprint",       path: "/imprint" },
   ];
 
   return (
@@ -91,7 +91,7 @@ export default function Footer() {
         
         <div className="pt-6 border-t border-white flex flex-col md:flex-row justify-between items-center mt-4">
           <div className="text-white mb-4 md:mb-0">
-            <p>&copy; {new Date().getFullYear()} rebatrix GmbH. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Rebatrix – Beta-Project. All rights reserved.</p>
           </div>
           <div className="flex space-x-6">
             {footerLinks.map((link) => (
