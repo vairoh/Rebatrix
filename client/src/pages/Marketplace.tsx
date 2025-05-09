@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { batteryTypes, batteryCategories, listingTypes } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
 import { getStatesForCountry } from "@/lib/countries";
-import { CountrySelect } from "@/components/ui/country-select";
+import CountrySelect from "@/components/CountrySelect";
 
 export default function Marketplace() {
   const { user } = useAuth();
