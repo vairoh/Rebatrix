@@ -426,7 +426,6 @@ export default function ListBattery() {
                             </FormItem>
                           )}
                         />
-                      </div>
                     </div>
                   </div>
 
