@@ -20,6 +20,8 @@ export default function Marketplace() {
   const [searchParams, setSearchParams] = useState<BatterySearch>({});
   const [priceRange, setPriceRange] = useState([0, 100000]);
   const [capacityRange, setCapacityRange] = useState([0, 500]);
+  const selectedCountry = searchParams.country || "";
+
 
   // Extract initial filter from URL if present
   useEffect(() => {
@@ -318,7 +320,7 @@ export default function Marketplace() {
               </div>
 
 
-              {/* State/Location filter */}
+              {/* State/Region filter */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
                   State/Region
@@ -326,13 +328,13 @@ export default function Marketplace() {
                 <Select 
                   value={searchParams.location}
                   onValueChange={(value) => setSearchParams(prev => ({ ...prev, location: value }))}
-                  disabled={!searchParams.country}
+                  disabled={!selectedCountry}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={searchParams.country ? "Select state" : "Select country first"} />
+                    <SelectValue placeholder={selectedCountry ? "Select state" : "Select country first"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {getStatesForCountry(searchParams.country || '').map((state) => (
+                    {getStatesForCountry(selectedCountry).map((state) => (
                       <SelectItem key={state} value={state}>
                         {state}
                       </SelectItem>
@@ -340,6 +342,7 @@ export default function Marketplace() {
                   </SelectContent>
                 </Select>
               </div>
+
 
               {/* Manufacturer filter */}
               <div>

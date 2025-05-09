@@ -133,6 +133,8 @@ export default function EditBattery() {
     },
   });
 
+  const selectedCountry = form.watch("country");
+
   // Update form values when battery data is loaded
   useEffect(() => {
     if (battery) {
@@ -698,14 +700,30 @@ export default function EditBattery() {
                           name="location"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>City*</FormLabel>
-                              <FormControl>
-                                <Input placeholder="e.g. Berlin" {...field} />
-                              </FormControl>
+                              <FormLabel>State*</FormLabel>
+                              <Select
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                disabled={!selectedCountry}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder={selectedCountry ? "Select state" : "Select country first"} />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {getStatesForCountry(selectedCountry || "").map((state) => (
+                                    <SelectItem key={state} value={state}>
+                                      {state}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
+
                       </div>
                     </div>
                     

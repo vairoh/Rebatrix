@@ -184,7 +184,7 @@ export default function Signup() {
                   value={formData.location}
                   onChange={handleInputChange}
                   className={`w-full p-2 rounded-xl border ${formErrors.location ? 'border-red-500' : 'border-black'}`}
-                  placeholder="Berlin"
+                  placeholder="Select country"
                 />
                 {formErrors.location && <p className="text-xs text-red-500 mt-1">{formErrors.location}</p>}
               </div>

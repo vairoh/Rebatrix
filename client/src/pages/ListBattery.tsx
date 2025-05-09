@@ -227,6 +227,8 @@ export default function ListBattery() {
     }
   };
 
+  const selectedCountry = form.watch("country");
+  
   return (
     <div className="bg-neutral-50 py-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -367,15 +369,15 @@ export default function ListBattery() {
                               <Select 
                                 value={field.value} 
                                 onValueChange={field.onChange}
-                                disabled={!form.getValues('country')}
+                                disabled={!selectedCountry}
                               >
                                 <FormControl>
                                   <SelectTrigger>
-                                    <SelectValue placeholder={form.getValues('country') ? "Select state" : "Select country first"} />
+                                    <SelectValue placeholder={selectedCountry ? "Select state" : "Select country first"} />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {getStatesForCountry(form.getValues('country')).map((state) => (
+                                  {getStatesForCountry(selectedCountry || "").map((state) => (
                                     <SelectItem key={state} value={state}>
                                       {state}
                                     </SelectItem>
