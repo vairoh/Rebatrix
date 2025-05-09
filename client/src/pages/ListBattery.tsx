@@ -387,6 +387,7 @@ export default function ListBattery() {
                                           {country.name}
                                         </SelectItem>
                                       ))}
+                                    </div>
                                   </SelectContent>
                                   {/* —— end patched content —— */}
 
