@@ -13,8 +13,12 @@ import Footer from "@/components/layout/Footer";
 import { ProtectedContent } from "@/components/auth/ProtectedRoute";
 import { AuthProvider } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/toaster";
-import EditBattery from "@/pages/EditBattery"; // Added import
-import AdminDashboard from "./pages/AdminDashboard"; // Added import
+import EditBattery from "@/pages/EditBattery";
+import AdminDashboard from "./pages/AdminDashboard";
+import Imprint from "@/pages/imprint";
+import Privacy from "@/pages/privacy";
+import Terms from "@/pages/terms";
+import Cookies from "@/pages/cookies";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -54,7 +58,13 @@ function Router() {
           <Route path="/profile" component={ProtectedProfile} />
           <Route path="/login" component={Login} />
           <Route path="/signup" component={Signup} />
-          <Route path="/admin" component={AdminDashboard} /> {/* Added admin route */}
+          <Route path="/admin" component={AdminDashboard} />
+
+          {/* ✅ New legal routes */}
+          <Route path="/imprint" component={Imprint} />
+          <Route path="/privacy" component={Privacy} />
+          <Route path="/terms" component={Terms} />
+          <Route path="/cookies" component={Cookies} />
           <Route component={NotFound} />
         </Switch>
       </main>
